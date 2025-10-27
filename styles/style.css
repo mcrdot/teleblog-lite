@@ -80,7 +80,7 @@ html, body {
 }
 
 .page.active {
-  display: block;
+  display: block !important;  /* Add !important here */
 }
 
 .settings-page {
@@ -94,28 +94,8 @@ html, body {
   overflow-y: auto;
 }
 
-/* ==================== */
-/* Loading Overlays */
-/* ==================== */
-
 #loading-overlay {
-//  position: fixed;
-//  top: 0;
-//  left: 0;
-//  width: 100%;
-//  height: 100%;
-//  background: var(--bg-color);
-//  display: none;
-//  align-items: center;
-//  justify-content: center;
-//  flex-direction: column;
-//  z-index: 9999;
-
-    display: none !important;
-}
-
-#loading-overlay.active {
-  display: flex;
+  display: none !important; 
 }
 
 .loader {
@@ -858,13 +838,8 @@ input:checked + .slider:before {
 /* Utility Classes - FIXED */
 /* ==================== */
 
-.guest-only {
-  display: block !important;
-}
-
-.auth-only {
-  display: none !important;
-}
+.guest-only { display: none !important; }
+.auth-only { display: block !important; }
 
 .empty-state {
   text-align: center;
