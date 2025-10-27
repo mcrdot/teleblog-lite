@@ -1,8 +1,9 @@
-// app.js - TeleBlog Production Version - COMPLETE FIXED
+// app.js - TeleBlog Production Version - SUPABASE FIXED
 console.log('🚀 TeleBlog App Loading...');
 
 const API_BASE = "https://teleblog-indexjs.macrotiser-pk.workers.dev";
 const SUPABASE_URL = "https://hudrcdftoqcwxskhuahg.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1ZHJjZGZ0b3Fjd3hza2h1YWhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYwOTMwNjcsImV4cCI6MjA3MTY2OTA2N30.YqGQBcFC2oVJILZyvVP7OgPlOOkuqO6eF1QaABb7MCo";
 
 window.teleBlogApp = {
   currentUser: null,
@@ -37,9 +38,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   initializeSettings();
   console.log('✅ Settings initialized');
 
-  // Initialize Supabase
-  window.teleBlogApp.supabase = window.supabase.createClient(SUPABASE_URL, "");
-  console.log('✅ Supabase initialized');
+  // Initialize Supabase WITH API KEY - FIXED
+  try {
+    window.teleBlogApp.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log('✅ Supabase initialized successfully');
+  } catch (error) {
+    console.error('❌ Supabase initialization failed:', error);
+    // Continue without Supabase - it's only used for some features
+    window.teleBlogApp.supabase = null;
+  }
 
   // Check for existing session first
   const savedToken = localStorage.getItem("teleblog_token");
