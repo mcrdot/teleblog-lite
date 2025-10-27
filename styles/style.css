@@ -288,6 +288,17 @@ html, body {
   border: 2px solid var(--accent-color);
 }
 
+.btn-outline {
+  background: transparent !important;
+  color: var(--accent-color) !important;
+  border: 2px solid var(--accent-color) !important;
+}
+
+.btn-outline:active {
+  background: var(--accent-color) !important;
+  color: white !important;
+}
+
 .btn-telegram {
   background: linear-gradient(135deg, #0088cc, #00a2e8);
 }
@@ -842,15 +853,15 @@ input:checked + .slider:before {
 }
 
 /* ==================== */
-/* Utility Classes */
+/* Utility Classes - FIXED */
 /* ==================== */
 
 .guest-only {
-  display: block;
+  display: block !important;
 }
 
 .auth-only {
-  display: none;
+  display: none !important;
 }
 
 .empty-state {

@@ -1,4 +1,4 @@
-// app.js - TeleBlog Production Version - FIXED QUICK TEST LOGIN
+// app.js - TeleBlog Production Version - FIXED UI ISSUES
 
 const API_BASE = "https://teleblog-indexjs.macrotiser-pk.workers.dev";
 const SUPABASE_URL = "https://hudrcdftoqcwxskhuahg.supabase.co";
@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     showManualLogin();
   }
 
-  // Setup event listeners - USE EVENT DELEGATION TO AVOID CONFLICTS
+  // Setup event listeners
   document.addEventListener('click', function(e) {
     // Handle Telegram login button
     if (e.target.id === 'telegram-login-btn' || e.target.closest('#telegram-login-btn')) {
@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }, 8000);
 });
 
-// DEVELOPMENT LOGIN - SIMPLIFIED AND GUARANTEED TO WORK
+// DEVELOPMENT LOGIN - FIXED UI CONTROL
 function useDevelopmentLogin() {
   console.log('🔧 Using development login');
   
@@ -243,7 +243,7 @@ function showManualLogin() {
   if (devLoginBtn) devLoginBtn.style.display = "flex";
 }
 
-// Enhanced UI functions
+// Enhanced UI functions - FIXED
 function updateProfileInfo() {
   if (window.teleBlogApp.currentUser) {
     const user = window.teleBlogApp.currentUser;
@@ -266,17 +266,26 @@ function logout() {
   window.teleBlogApp.jwtToken = null;
   currentSettings = {};
   
-  // Show auth screen
-  document.querySelectorAll('.auth-only').forEach(el => {
-    el.style.display = 'none';
-  });
-  
-  document.querySelectorAll('.guest-only').forEach(el => {
-    el.style.display = 'block';
+  // Show auth screen using class manipulation
+  document.querySelectorAll('.page').forEach(page => {
+    page.classList.remove('active');
   });
   
   const authPage = document.getElementById('auth');
-  if (authPage) authPage.classList.add('active');
+  if (authPage) {
+    authPage.classList.add('active');
+  }
+  
+  // Force UI refresh
+  setTimeout(() => {
+    document.querySelectorAll('.auth-only').forEach(el => {
+      el.style.display = 'none';
+    });
+    
+    document.querySelectorAll('.guest-only').forEach(el => {
+      el.style.display = 'block';
+    });
+  }, 100);
   
   showToast('Logged out successfully', 'info');
 }
@@ -321,15 +330,20 @@ function switchPage(id) {
   }
 }
 
+// FIXED: Enhanced showAuthenticatedUI function
 function showAuthenticatedUI() {
   console.log('🎉 Showing authenticated UI');
   
-  // Hide guest elements
+  // Hide all pages first
+  document.querySelectorAll('.page').forEach(page => {
+    page.classList.remove('active');
+  });
+  
+  // Use inline styles to override CSS !important rules
   document.querySelectorAll('.guest-only').forEach(el => {
     el.style.display = 'none';
   });
   
-  // Show auth elements
   document.querySelectorAll('.auth-only').forEach(el => {
     el.style.display = 'block';
   });
