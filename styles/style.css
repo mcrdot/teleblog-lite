@@ -1,16 +1,161 @@
-/* Add this to your existing style.css */
+/* TeleBlog - Complete Fixed CSS */
+/* Reset and Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: var(--bg-color);
+  color: var(--text-color);
+  overflow-x: hidden;
+}
+
+/* ==================== */
+/* Theme Variables */
+/* ==================== */
+
+:root {
+  /* Telegram Native Dark Theme (Default) */
+  --bg-color: #0f0f0f;
+  --text-color: #ffffff;
+  --text-secondary-color: #8e8e93;
+  --accent-color: #8774e1;
+  --accent-dark: #6a5bb3;
+  --surface-color: #1c1c1c;
+  --error-color: #ff3b30;
+  --success-color: #34c759;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  --radius: 14px;
+}
+
+[data-theme="teleblog-dark"] {
+  /* TeleBlog Dark Theme (similar to DeepSeek) */
+  --bg-color: #1a1a1a;
+  --text-color: #e0e0e0;
+  --text-secondary-color: #888;
+  --accent-color: #10a37f;
+  --accent-dark: #0d8a6c;
+  --surface-color: #2d2d2d;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="system"] {
+  /* System theme will use prefers-color-scheme */
+}
+
+@media (prefers-color-scheme: light) {
+  [data-theme="system"] {
+    --bg-color: #f8f8f8;
+    --text-color: #222;
+    --text-secondary-color: #777;
+    --accent-color: #978366;
+    --accent-dark: #463d31;
+    --surface-color: #ffffff;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* ==================== */
+/* Core Layout */
+/* ==================== */
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+  padding-bottom: 60px;
+}
+
+/* Page System - FIXED */
 .page {
   display: none;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .page.active {
   display: block;
 }
 
-.settings-page.active {
-  display: block;
+.settings-page {
+  background: var(--bg-color);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  overflow-y: auto;
 }
 
+/* ==================== */
+/* Loading Overlays */
+/* ==================== */
+
+#loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-color);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 9999;
+}
+
+#loading-overlay.active {
+  display: flex;
+}
+
+.loader {
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top: 4px solid var(--accent-color);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Navigation Loading */
+.nav-loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.nav-loading.active {
+  display: flex;
+}
+
+.nav-loader {
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid var(--accent-color);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
 
 /* ==================== */
 /* Sticky Header */
@@ -25,6 +170,7 @@
   border-bottom: 1px solid rgba(0,0,0,0.1);
   z-index: 900;
   backdrop-filter: blur(10px);
+  display: none;
 }
 
 .header-content {
@@ -70,19 +216,118 @@
 }
 
 /* ==================== */
-/* Settings Page */
+/* Auth Section */
 /* ==================== */
 
-.settings-page {
-  background: var(--bg-color);
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1000;
-  overflow-y: auto;
+.auth-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  text-align: center;
+  padding: 20px;
 }
+
+.app-logo {
+  margin-bottom: 16px;
+}
+
+.app-logo .logo-icon {
+  font-size: 3.5rem;
+  margin-bottom: 8px;
+}
+
+.app-logo h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-color), var(--accent-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.app-tagline {
+  color: var(--text-secondary-color);
+  margin-bottom: 40px;
+  font-size: 1rem;
+}
+
+.auth-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 280px;
+  margin-bottom: 40px;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 20px;
+  border-radius: var(--radius);
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  box-shadow: var(--shadow);
+}
+
+.btn-primary {
+  background: var(--accent-color);
+  color: white;
+}
+
+.btn-secondary {
+  background: var(--surface-color);
+  color: var(--text-color);
+  border: 2px solid var(--accent-color);
+}
+
+.btn-telegram {
+  background: linear-gradient(135deg, #0088cc, #00a2e8);
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-icon {
+  margin-right: 8px;
+  font-size: 1.1rem;
+}
+
+.auth-features {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--surface-color);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  color: var(--text-secondary-color);
+  box-shadow: var(--shadow);
+}
+
+.feature-icon {
+  font-size: 1.1rem;
+}
+
+/* ==================== */
+/* Settings Page */
+/* ==================== */
 
 .settings-header {
   display: flex;
@@ -267,182 +512,7 @@ input:checked + .slider:before {
 }
 
 /* ==================== */
-/* Navigation Loading */
-/* ==================== */
-
-.nav-loading {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-}
-
-.nav-loading.active {
-  display: flex;
-}
-
-.nav-loader {
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top: 3px solid var(--accent-color);
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-}
-
-/* ==================== */
-/* Theme Variables */
-/* ==================== */
-
-:root {
-  /* Telegram Native Dark Theme (Default) */
-  --bg-color: #0f0f0f;
-  --text-color: #ffffff;
-  --text-secondary-color: #8e8e93;
-  --accent-color: #8774e1;
-  --accent-dark: #6a5bb3;
-  --surface-color: #1c1c1c;
-  --error-color: #ff3b30;
-  --success-color: #34c759;
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-  --radius: 14px;
-}
-
-[data-theme="teleblog-dark"] {
-  /* TeleBlog Dark Theme (similar to DeepSeek) */
-  --bg-color: #1a1a1a;
-  --text-color: #e0e0e0;
-  --text-secondary-color: #888;
-  --accent-color: #10a37f;
-  --accent-dark: #0d8a6c;
-  --surface-color: #2d2d2d;
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-}
-
-[data-theme="system"] {
-  /* System theme will use prefers-color-scheme */
-}
-
-@media (prefers-color-scheme: light) {
-  [data-theme="system"] {
-    --bg-color: #f8f8f8;
-    --text-color: #222;
-    --text-secondary-color: #777;
-    --accent-color: #978366;
-    --accent-dark: #463d31;
-    --surface-color: #ffffff;
-    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  }
-}
-
-/* ==================== */
-/* Text Size Variables */
-/* ==================== */
-
-[data-text-size="small"] {
-  font-size: 14px;
-}
-
-[data-text-size="medium"] {
-  font-size: 16px;
-}
-
-[data-text-size="large"] {
-  font-size: 18px;
-}
-
-/* ==================== */
-/* Responsive Adjustments */
-/* ==================== */
-
-@media screen and (max-width: 480px) {
-  .settings-option {
-    padding: 14px;
-  }
-  
-  .theme-selector {
-    min-width: 120px;
-  }
-  
-  .header-content {
-    padding: 12px;
-  }
-}
-
-/* ==================== */
-/* Enhanced 4-Item Navigation */
-/* ==================== */
-
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: var(--surface-color);
-  border-top: 1px solid rgba(0,0,0,0.1);
-  display: flex;
-  justify-content: space-around;
-  padding: 12px 0;
-  z-index: 1000;
-  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
-}
-
-.nav-item {
-  background: none;
-  border: none;
-  outline: none;
-  color: var(--text-secondary-color);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 12px;
-  border-radius: var(--radius);
-  min-width: 60px;
-}
-
-.nav-icon {
-  font-size: 1.3rem;
-  transition: all 0.3s ease;
-  filter: grayscale(0.7);
-}
-
-.nav-label {
-  font-size: 0.7rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  opacity: 0.8;
-}
-
-.nav-item.active,
-.nav-item:active {
-  color: var(--accent-color);
-  transform: translateY(-2px);
-}
-
-.nav-item.active .nav-icon,
-.nav-item:active .nav-icon {
-  filter: grayscale(0);
-  transform: scale(1.1);
-}
-
-.nav-item.active .nav-label,
-.nav-item:active .nav-label {
-  opacity: 1;
-  font-weight: 600;
-}
-
-/* ==================== */
-/* Enhanced Page Layouts */
+/* Main App Sections */
 /* ==================== */
 
 .page-header {
@@ -450,7 +520,7 @@ input:checked + .slider:before {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  padding: 0 8px;
+  padding: 16px 16px 0;
 }
 
 .page-header h1 {
@@ -474,163 +544,12 @@ input:checked + .slider:before {
   transform: scale(0.95);
 }
 
-/* ==================== */
-/* Enhanced Auth Section */
-/* ==================== */
-
-.auth-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 85vh;
-  text-align: center;
-  padding: 20px;
-}
-
-.app-logo {
-  margin-bottom: 16px;
-}
-
-.logo-icon {
-  font-size: 3.5rem;
-  margin-bottom: 8px;
-}
-
-.app-logo h1 {
-  font-size: 2rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, var(--accent-color), var(--accent-dark));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.app-tagline {
-  color: var(--text-secondary-color);
-  margin-bottom: 40px;
-  font-size: 1rem;
-}
-
-.auth-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-  max-width: 280px;
-  margin-bottom: 40px;
-}
-
-.btn-telegram {
-  background: linear-gradient(135deg, #0088cc, #00a2e8);
-}
-
-.btn-icon {
-  margin-right: 8px;
-  font-size: 1.1rem;
-}
-
-.auth-features {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-  max-width: 280px;
-}
-
-.feature-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: var(--surface-color);
-  border-radius: var(--radius);
-  font-size: 0.9rem;
-  color: var(--text-secondary-color);
-  box-shadow: var(--shadow);
-}
-
-.feature-icon {
-  font-size: 1.1rem;
-}
-
-/* ==================== */
-/* Enhanced Profile Section */
-/* ==================== */
-
-.profile-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 20px;
-  background: var(--surface-color);
-  border-radius: var(--radius);
-  margin-bottom: 20px;
-  box-shadow: var(--shadow);
-}
-
-.profile-header img {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.profile-info h2 {
-  font-size: 1.3rem;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-
-.profile-info p {
-  color: var(--text-secondary-color);
-  font-size: 0.9rem;
-}
-
-.profile-stats {
-  display: flex;
-  justify-content: space-around;
-  background: var(--surface-color);
-  border-radius: var(--radius);
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: var(--shadow);
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.stat-number {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--accent-color);
-}
-
-.stat-label {
-  font-size: 0.8rem;
-  color: var(--text-secondary-color);
-}
-
-.profile-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 0 8px;
-}
-
-/* ==================== */
-/* Enhanced Posts Grid */
-/* ==================== */
-
+/* Posts Grid */
 .posts-grid {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding-bottom: 20px;
+  padding: 0 16px 20px;
 }
 
 .post-card {
@@ -698,10 +617,72 @@ input:checked + .slider:before {
   gap: 12px;
 }
 
-/* ==================== */
-/* Section Placeholders */
-/* ==================== */
+/* Profile Section */
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: var(--surface-color);
+  border-radius: var(--radius);
+  margin: 16px;
+  box-shadow: var(--shadow);
+}
 
+.profile-header img {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile-info h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.profile-info p {
+  color: var(--text-secondary-color);
+  font-size: 0.9rem;
+}
+
+.profile-stats {
+  display: flex;
+  justify-content: space-around;
+  background: var(--surface-color);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin: 0 16px 20px;
+  box-shadow: var(--shadow);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-number {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent-color);
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary-color);
+}
+
+.profile-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 16px;
+}
+
+/* Section Placeholders */
 .section-placeholder {
   display: flex;
   flex-direction: column;
@@ -729,37 +710,159 @@ input:checked + .slider:before {
 }
 
 /* ==================== */
-/* Enhanced Buttons */
+/* Bottom Navigation */
 /* ==================== */
 
-.btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 14px 20px;
-  border-radius: var(--radius);
-  font-weight: 600;
-  text-decoration: none;
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: var(--surface-color);
+  border-top: 1px solid rgba(0,0,0,0.1);
+  display: none;
+  justify-content: space-around;
+  padding: 12px 0;
+  z-index: 1000;
+  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.nav-item {
+  background: none;
   border: none;
+  outline: none;
+  color: var(--text-secondary-color);
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 0.95rem;
-  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  min-width: 60px;
 }
 
-.btn-primary {
-  background: var(--accent-color);
-  color: white;
+.nav-icon {
+  font-size: 1.3rem;
+  transition: all 0.3s ease;
+  filter: grayscale(0.7);
 }
 
-.btn-secondary {
+.nav-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  opacity: 0.8;
+}
+
+.nav-item.active,
+.nav-item:active {
+  color: var(--accent-color);
+  transform: translateY(-2px);
+}
+
+.nav-item.active .nav-icon,
+.nav-item:active .nav-icon {
+  filter: grayscale(0);
+  transform: scale(1.1);
+}
+
+.nav-item.active .nav-label,
+.nav-item:active .nav-label {
+  opacity: 1;
+  font-weight: 600;
+}
+
+/* ==================== */
+/* Toast Notifications */
+/* ==================== */
+
+#toast-container {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.toast {
   background: var(--surface-color);
   color: var(--text-color);
-  border: 2px solid var(--accent-color);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  animation: fadeIn 0.3s ease;
 }
 
-.btn:active {
-  transform: scale(0.98);
+.toast-success {
+  border-left: 5px solid var(--success-color);
+}
+
+.toast-error {
+  border-left: 5px solid var(--error-color);
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary-color);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==================== */
+/* Text Size Variables */
+/* ==================== */
+
+[data-text-size="small"] {
+  font-size: 14px;
+}
+
+[data-text-size="medium"] {
+  font-size: 16px;
+}
+
+[data-text-size="large"] {
+  font-size: 18px;
+}
+
+/* ==================== */
+/* Utility Classes */
+/* ==================== */
+
+.guest-only {
+  display: block;
+}
+
+.auth-only {
+  display: none;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary-color);
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  opacity: 0.7;
 }
 
 /* ==================== */
@@ -767,8 +870,21 @@ input:checked + .slider:before {
 /* ==================== */
 
 @media screen and (max-width: 480px) {
-  .page {
-    padding: 16px 12px;
+  .page-header {
+    padding: 12px 12px 0;
+  }
+  
+  .posts-grid {
+    padding: 0 12px 20px;
+  }
+  
+  .profile-header,
+  .profile-stats {
+    margin: 12px;
+  }
+  
+  .profile-actions {
+    padding: 0 12px;
   }
   
   .nav-item {
@@ -784,10 +900,6 @@ input:checked + .slider:before {
     font-size: 0.65rem;
   }
   
-  .profile-header {
-    padding: 16px;
-  }
-  
   .profile-header img {
     width: 60px;
     height: 60px;
@@ -796,23 +908,16 @@ input:checked + .slider:before {
   .post-card {
     padding: 16px;
   }
-}
-
-/* ==================== */
-/* Dark Mode Refinements */
-/* ==================== */
-
-@media (prefers-color-scheme: dark) {
-  .bottom-nav {
-    background: rgba(28, 28, 28, 0.9);
-    border-top: 1px solid rgba(255,255,255,0.1);
+  
+  .settings-option {
+    padding: 14px;
   }
   
-  .post-card {
-    border: 1px solid rgba(255,255,255,0.05);
+  .theme-selector {
+    min-width: 120px;
   }
   
-  .feature-item {
-    background: rgba(255,255,255,0.05);
+  .header-content {
+    padding: 12px;
   }
 }
