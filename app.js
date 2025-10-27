@@ -1,32 +1,21 @@
-// app.js - TeleBlog Production Version - FIXED UI ISSUES
-
+// app.js - TELEBLOG HOTFIX - NO LOADERS
 const API_BASE = "https://teleblog-indexjs.macrotiser-pk.workers.dev";
-const SUPABASE_URL = "https://hudrcdftoqcwxskhuahg.supabase.co";
 
 window.teleBlogApp = {
   currentUser: null,
   jwtToken: null,
-  supabase: null,
   tg: null
 };
 
-// Settings and Loading Functions
 let currentSettings = {};
 
 document.addEventListener("DOMContentLoaded", async () => {
   console.log('🚀 TeleBlog App Starting...');
   
-  const loading = document.getElementById("loading-overlay");
-  const loginBtn = document.getElementById("telegram-login-btn");
-  const devLoginBtn = document.getElementById("dev-login-btn");
-
-  // Initialize settings first
+  // Initialize settings
   initializeSettings();
 
-  // Initialize Supabase
-  window.teleBlogApp.supabase = window.supabase.createClient(SUPABASE_URL, "");
-
-  // Check for existing session first
+  // Check for existing session
   const savedToken = localStorage.getItem("teleblog_token");
   const savedUser = localStorage.getItem("teleblog_user");
 
@@ -35,213 +24,46 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.teleBlogApp.jwtToken = savedToken;
     window.teleBlogApp.currentUser = JSON.parse(savedUser);
     showAuthenticatedUI();
-    loading.classList.remove("active");
     return;
   }
 
-  // Initialize Telegram WebApp
-  window.teleBlogApp.tg = window.Telegram?.WebApp;
-  
-  if (window.teleBlogApp.tg) {
-    console.log('📱 Telegram WebApp detected');
-    
-    try {
-      window.teleBlogApp.tg.ready();
-      window.teleBlogApp.tg.expand();
-      
-      console.log('Telegram WebApp initialized:', {
-        platform: window.teleBlogApp.tg.platform,
-        version: window.teleBlogApp.tg.version,
-        initData: window.teleBlogApp.tg.initData ? 'available' : 'missing',
-        initDataUnsafe: window.teleBlogApp.tg.initDataUnsafe ? 'available' : 'missing'
-      });
-
-      // Try to authenticate with Telegram data
-      await attemptTelegramAuth();
-      
-    } catch (error) {
-      console.error('❌ Telegram init error:', error);
-      showManualLogin();
-    }
-  } else {
-    console.log('🌐 Not in Telegram environment');
-    showManualLogin();
-  }
-
-  // Setup event listeners
-  document.addEventListener('click', function(e) {
-    // Handle Telegram login button
-    if (e.target.id === 'telegram-login-btn' || e.target.closest('#telegram-login-btn')) {
-      e.preventDefault();
-      if (window.teleBlogApp.tg?.initData) {
-        authenticateWithTelegram(window.teleBlogApp.tg.initData);
-      } else {
-        showToast("Telegram authentication not available in current environment", "error");
-      }
-    }
-    
-    // Handle Dev login button
-    if (e.target.id === 'dev-login-btn' || e.target.closest('#dev-login-btn')) {
-      e.preventDefault();
-      useDevelopmentLogin();
-    }
-  });
-
-  // Emergency timeout - remove loader after 8 seconds
-  setTimeout(() => {
-    if (loading && loading.classList.contains("active")) {
-      console.log('🕒 Loader timeout - showing manual options');
-      loading.classList.remove("active");
-      showManualLogin();
-    }
-  }, 8000);
+  // Show login immediately
+  showManualLogin();
 });
 
-// DEVELOPMENT LOGIN - FIXED UI CONTROL
+// SIMPLIFIED DEVELOPMENT LOGIN - NO LOADERS
 function useDevelopmentLogin() {
   console.log('🔧 Using development login');
   
-  // Show loading immediately
-  const loading = document.getElementById("loading-overlay");
-  if (loading) loading.classList.add("active");
-  
-  // Simple dev user data
   const devUser = {
     id: "dev_001",
     username: "teleblog_developer", 
-    display_name: "TeleBlog Developer",
+    display_name: "TeleBlog Developer", 
     role: "reader",
     telegram_id: "dev_001"
   };
   
-  // Set app state
   window.teleBlogApp.currentUser = devUser;
   window.teleBlogApp.jwtToken = "dev_jwt_token_teleblog_2024";
   
-  // Save to localStorage
   localStorage.setItem("teleblog_user", JSON.stringify(devUser));
   localStorage.setItem("teleblog_token", "dev_jwt_token_teleblog_2024");
   
-  console.log('✅ Development login data saved');
-  
-  // Show authenticated UI after a short delay to ensure everything is ready
-  setTimeout(() => {
-    if (loading) loading.classList.remove("active");
-    showAuthenticatedUI();
-    showToast("Development login successful! 🚀", "success");
-  }, 1000);
-}
-
-async function attemptTelegramAuth() {
-  const loading = document.getElementById("loading-overlay");
-  const tg = window.teleBlogApp.tg;
-
-  console.log('🔐 Attempting Telegram authentication...');
-
-  // Method 1: Use initData if available
-  if (tg.initData) {
-    console.log('✅ Using initData for authentication');
-    await authenticateWithTelegram(tg.initData);
-    return;
-  }
-
-  // Method 2: Use initDataUnsafe as fallback
-  if (tg.initDataUnsafe?.user) {
-    console.log('⚠️ Using initDataUnsafe as fallback');
-    const userData = tg.initDataUnsafe.user;
-    const reconstructedData = reconstructInitData(userData);
-    await authenticateWithTelegram(reconstructedData);
-    return;
-  }
-
-  // Method 3: Try after a short delay (Telegram might be still initializing)
-  setTimeout(() => {
-    if (tg.initData) {
-      console.log('✅ Found initData after delay');
-      authenticateWithTelegram(tg.initData);
-    } else {
-      console.log('❌ No Telegram data available after delay');
-      showManualLogin();
-    }
-  }, 2000);
-}
-
-function reconstructInitData(userData) {
-  const data = {
-    user: JSON.stringify(userData),
-    auth_date: Math.floor(Date.now() / 1000),
-    hash: 'reconstructed_from_unsafe'
-  };
-  
-  return Object.keys(data)
-    .map(key => `${key}=${encodeURIComponent(data[key])}`)
-    .join('&');
-}
-
-async function authenticateWithTelegram(initData) {
-  const loading = document.getElementById("loading-overlay");
-  
-  if (loading) loading.classList.add("active");
-  const loginBtn = document.getElementById("telegram-login-btn");
-  if (loginBtn) loginBtn.style.display = "none";
-
-  try {
-    console.log('📡 Sending auth request to server...');
-    
-    const response = await fetch(`${API_BASE}/auth`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        initData,
-        source: "telegram_webapp"
-      }),
-    });
-
-    console.log('📨 Auth response status:', response.status);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Server returned ${response.status}: ${errorText}`);
-    }
-
-    const data = await response.json();
-    console.log('✅ Auth successful:', data);
-
-    if (data.user && data.token) {
-      window.teleBlogApp.currentUser = data.user;
-      window.teleBlogApp.jwtToken = data.token;
-      
-      localStorage.setItem("teleblog_token", data.token);
-      localStorage.setItem("teleblog_user", JSON.stringify(data.user));
-
-      showAuthenticatedUI();
-      showToast(`Welcome ${data.user.display_name}!`, "success");
-    } else {
-      throw new Error("Invalid response: missing user or token");
-    }
-
-  } catch (error) {
-    console.error("❌ Authentication failed:", error);
-    showToast(`Authentication failed: ${error.message}`, "error");
-    showManualLogin();
-  } finally {
-    if (loading) loading.classList.remove("active");
-  }
+  showAuthenticatedUI();
+  showToast("Development login successful! 🚀", "success");
 }
 
 function showManualLogin() {
   console.log('👤 Showing manual login options');
-  
-  const loading = document.getElementById("loading-overlay");
   const loginBtn = document.getElementById("telegram-login-btn");
   const devLoginBtn = document.getElementById("dev-login-btn");
   
-  if (loading) loading.classList.remove("active");
   if (loginBtn) loginBtn.style.display = "flex";
   if (devLoginBtn) devLoginBtn.style.display = "flex";
 }
+
+// KEEP ALL OTHER FUNCTIONS THE SAME AS BEFORE...
+// [Rest of your existing functions for showAuthenticatedUI, switchPage, etc.]
 
 // Enhanced UI functions - FIXED
 function updateProfileInfo() {
