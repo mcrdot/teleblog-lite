@@ -74,33 +74,33 @@
       </div>
     </section>
 
-    <!-- Settings Page -->
-    <section id="settings" class="page settings-page auth-only">
-      <div class="settings-header">
-        <button class="back-btn" onclick="closeSettings()">
-          <span class="back-icon">←</span>
-          Back
-        </button>
-        <h2>Settings</h2>
-        <div class="header-spacer"></div>
-      </div>
+<!-- Settings Page -->
+<section id="settings" class="page settings-page auth-only">
+  <div class="settings-header">
+    <button class="back-btn" onclick="closeSettings()">
+      <span class="back-icon">←</span>
+      Back
+    </button>
+    <h2>Settings</h2>
+    <div class="header-spacer"></div>
+  </div>
 
       <div class="settings-content">
-        <!-- Theme Settings -->
-        <div class="settings-section">
-          <h3 class="section-title">Appearance</h3>
-          <div class="settings-option">
-            <div class="option-info">
-              <span class="option-title">Theme</span>
-              <span class="option-description">Choose your preferred theme</span>
-            </div>
-            <select id="theme-selector" class="theme-selector" onchange="changeTheme(this.value)">
-              <option value="telegram-native">Telegram Native Dark</option>
-              <option value="teleblog-dark">TeleBlog Dark</option>
-              <option value="system">System Default</option>
-            </select>
-          </div>
+           <!-- Theme Settings -->
+    <div class="settings-section">
+      <h3 class="section-title">Appearance</h3>
+      <div class="settings-option">
+        <div class="option-info">
+          <span class="option-title">Theme</span>
+          <span class="option-description">Choose your preferred theme</span>
         </div>
+        <select id="theme-selector" class="theme-selector" onchange="changeTheme(this.value)">
+          <option value="telegram-native">Telegram Native Dark</option>
+          <option value="teleblog-dark">TeleBlog Dark</option>
+          <option value="system">System Default</option>
+        </select>
+      </div> <!-- This closing div was missing -->
+    </div>
 
         <!-- Wallet Settings -->
         <div class="settings-section">
