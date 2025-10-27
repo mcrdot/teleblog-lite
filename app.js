@@ -1,4 +1,4 @@
-// app.js - TeleBlog Production Version - FIXED AUTH ISSUE
+// app.js - TeleBlog Production Version - COMPLETE FIXED VERSION
 
 const API_BASE = "https://teleblog-indexjs.macrotiser-pk.workers.dev";
 const SUPABASE_URL = "https://hudrcdftoqcwxskhuahg.supabase.co";
@@ -10,12 +10,18 @@ window.teleBlogApp = {
   tg: null
 };
 
+// Settings and Loading Functions
+let currentSettings = {};
+
 document.addEventListener("DOMContentLoaded", async () => {
   console.log('🚀 TeleBlog App Starting...');
   
   const loading = document.getElementById("loading-overlay");
   const loginBtn = document.getElementById("telegram-login-btn");
   const devLoginBtn = document.getElementById("dev-login-btn");
+
+  // Initialize settings first
+  initializeSettings();
 
   // Initialize Supabase
   window.teleBlogApp.supabase = window.supabase.createClient(SUPABASE_URL, "");
@@ -195,18 +201,6 @@ function showManualLogin() {
   loading.classList.remove("active");
   loginBtn.style.display = "flex";
   devLoginBtn.style.display = "flex";
-  
-  // Show debug info
-  const tg = window.teleBlogApp.tg;
-  if (tg) {
-    console.log('Debug - Telegram WebApp Status:', {
-      platform: tg.platform,
-      version: tg.version,
-      initData: tg.initData ? 'available' : 'missing',
-      initDataUnsafe: tg.initDataUnsafe ? 'available' : 'missing',
-      user: tg.initDataUnsafe?.user || 'no user data'
-    });
-  }
 }
 
 function useDevelopmentLogin() {
@@ -230,6 +224,75 @@ function useDevelopmentLogin() {
   showToast("Development login successful! 🚀", "success");
 }
 
+// Enhanced UI functions
+function updateProfileInfo() {
+  if (window.teleBlogApp.currentUser) {
+    const user = window.teleBlogApp.currentUser;
+    document.getElementById('profile-name').textContent = user.display_name || 'User';
+    document.getElementById('profile-username').textContent = user.username ? `@${user.username}` : '@user';
+  }
+}
+
+function logout() {
+  // Clear local storage
+  localStorage.removeItem("teleblog_token");
+  localStorage.removeItem("teleblog_user");
+  localStorage.removeItem("teleblog_settings");
+  
+  // Clear app state
+  window.teleBlogApp.currentUser = null;
+  window.teleBlogApp.jwtToken = null;
+  currentSettings = {};
+  
+  // Show auth screen
+  document.querySelectorAll('.auth-only').forEach(el => {
+    el.style.display = 'none';
+  });
+  
+  document.querySelectorAll('.guest-only').forEach(el => {
+    el.style.display = 'block';
+  });
+  
+  document.getElementById('auth').classList.add('active');
+  
+  showToast('Logged out successfully', 'info');
+}
+
+// Page navigation
+function switchPage(id) {
+  // Hide all pages
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  
+  // Show selected page
+  document.getElementById(id).classList.add("active");
+  
+  // Update navigation
+  document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
+  const navButton = document.getElementById("nav-" + id);
+  if (navButton) {
+    navButton.classList.add("active");
+  }
+  
+  // Load data for the active page
+  switch(id) {
+    case 'home':
+      loadPosts();
+      break;
+    case 'profile':
+      updateProfileInfo();
+      break;
+    case 'explore':
+      showToast('Explore section coming soon!', 'info');
+      break;
+    case 'create':
+      showToast('Ready to create amazing content!', 'info');
+      break;
+    case 'settings':
+      // Settings page doesn't need additional loading
+      break;
+  }
+}
+
 function showAuthenticatedUI() {
   console.log('🎉 Showing authenticated UI');
   
@@ -242,15 +305,16 @@ function showAuthenticatedUI() {
   document.querySelectorAll('.auth-only').forEach(el => {
     el.style.display = 'block';
   });
+  
+  // Specifically ensure header and nav are visible
+  document.querySelector('.sticky-header').style.display = 'block';
+  document.querySelector('.bottom-nav').style.display = 'flex';
 
   // Update user info
-  const profileName = document.getElementById("profile-name");
-  if (profileName && window.teleBlogApp.currentUser) {
-    profileName.textContent = window.teleBlogApp.currentUser.display_name;
-  }
+  updateProfileInfo();
 
   // Switch to home page
-  switchPage('home');
+  switchPageWithLoading('home');
 }
 
 async function loadPosts() {
@@ -367,16 +431,203 @@ function showToast(message, type = "info") {
   }, 5000);
 }
 
-// Page navigation
-function switchPage(id) {
-  document.querySelectorAll(".page.auth-only").forEach(p => p.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-  
-  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
-  document.getElementById("nav-" + id).classList.add("active");
-  
-  // Load data for the active page
-  if (id === 'home') {
-    loadPosts();
+// Settings Functions
+function initializeSettings() {
+  const savedSettings = localStorage.getItem('teleblog_settings');
+  if (savedSettings) {
+    currentSettings = JSON.parse(savedSettings);
+    applySettings();
+  } else {
+    // Default settings
+    currentSettings = {
+      theme: 'telegram-native',
+      textSize: 'medium',
+      autoLoadImages: true,
+      pushNotifications: true,
+      emailDigest: false,
+      walletConnected: false
+    };
+    saveSettings();
   }
+  
+  // Set build date
+  const buildDateElement = document.getElementById('build-date');
+  if (buildDateElement) {
+    buildDateElement.textContent = new Date().toLocaleDateString();
+  }
+}
+
+function saveSettings() {
+  localStorage.setItem('teleblog_settings', JSON.stringify(currentSettings));
+  applySettings();
+}
+
+function applySettings() {
+  // Apply theme
+  document.documentElement.setAttribute('data-theme', currentSettings.theme);
+  
+  // Apply text size
+  document.documentElement.setAttribute('data-text-size', currentSettings.textSize);
+  
+  // Update settings UI
+  const themeSelector = document.getElementById('theme-selector');
+  const textSizeSelector = document.getElementById('text-size');
+  const autoLoadImages = document.getElementById('auto-load-images');
+  const pushNotifications = document.getElementById('push-notifications');
+  const emailDigest = document.getElementById('email-digest');
+  
+  if (themeSelector) themeSelector.value = currentSettings.theme;
+  if (textSizeSelector) textSizeSelector.value = currentSettings.textSize;
+  if (autoLoadImages) autoLoadImages.checked = currentSettings.autoLoadImages;
+  if (pushNotifications) pushNotifications.checked = currentSettings.pushNotifications;
+  if (emailDigest) emailDigest.checked = currentSettings.emailDigest;
+  
+  // Update wallet status
+  updateWalletStatus();
+}
+
+// Settings modal functions
+function openSettings() {
+  switchPageWithLoading('settings');
+}
+
+function closeSettings() {
+  switchPageWithLoading('home');
+}
+
+// Theme functions
+function changeTheme(theme) {
+  currentSettings.theme = theme;
+  saveSettings();
+  showToast(`Theme changed to ${theme}`, 'success');
+}
+
+function changeTextSize(size) {
+  currentSettings.textSize = size;
+  saveSettings();
+  showToast(`Text size set to ${size}`, 'success');
+}
+
+function toggleSetting(key, value) {
+  currentSettings[key] = value;
+  saveSettings();
+  showToast(`Setting updated`, 'success');
+}
+
+// Wallet functions
+function connectWallet() {
+  showNavLoading();
+  setTimeout(() => {
+    currentSettings.walletConnected = true;
+    saveSettings();
+    hideNavLoading();
+    showToast('TON Wallet connected successfully!', 'success');
+  }, 2000);
+}
+
+function updateWalletStatus() {
+  const walletStatus = document.getElementById('wallet-status');
+  const walletBtn = document.getElementById('wallet-btn');
+  
+  if (walletStatus && walletBtn) {
+    if (currentSettings.walletConnected) {
+      walletStatus.textContent = 'Connected';
+      walletBtn.textContent = 'Disconnect';
+      walletBtn.onclick = disconnectWallet;
+    } else {
+      walletStatus.textContent = 'Not connected';
+      walletBtn.textContent = 'Connect';
+      walletBtn.onclick = connectWallet;
+    }
+  }
+}
+
+function disconnectWallet() {
+  showNavLoading();
+  setTimeout(() => {
+    currentSettings.walletConnected = false;
+    saveSettings();
+    hideNavLoading();
+    showToast('TON Wallet disconnected', 'info');
+  }, 1500);
+}
+
+// Data functions
+function clearCache() {
+  showNavLoading();
+  setTimeout(() => {
+    localStorage.removeItem('teleblog_posts_cache');
+    hideNavLoading();
+    showToast('Cache cleared successfully', 'success');
+  }, 1500);
+}
+
+function exportData() {
+  showNavLoading();
+  setTimeout(() => {
+    // Simulate data export
+    const exportData = {
+      user: window.teleBlogApp.currentUser,
+      settings: currentSettings,
+      exportDate: new Date().toISOString()
+    };
+    
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    
+    // Create download link
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(dataBlob);
+    link.download = `teleblog-export-${new Date().getTime()}.json`;
+    link.click();
+    
+    hideNavLoading();
+    showToast('Data exported successfully', 'success');
+  }, 2000);
+}
+
+function contactSupport() {
+  showToast('Support: contact@teleblog.app', 'info');
+}
+
+// Navigation loading functions
+function showNavLoading() {
+  const navLoading = document.getElementById('nav-loading');
+  if (navLoading) {
+    navLoading.classList.add('active');
+  }
+}
+
+function hideNavLoading() {
+  const navLoading = document.getElementById('nav-loading');
+  if (navLoading) {
+    navLoading.classList.remove('active');
+  }
+}
+
+function switchPageWithLoading(pageId) {
+  showNavLoading();
+  
+  setTimeout(() => {
+    switchPage(pageId);
+    hideNavLoading();
+  }, 1500); // 1.5 seconds loading for navigation
+}
+
+function loadPostsWithLoading() {
+  showNavLoading();
+  
+  setTimeout(() => {
+    loadPosts();
+    hideNavLoading();
+  }, 1500);
+}
+
+// Placeholder functions for future features
+function showCreatePost() {
+  showToast('Create post feature coming soon!', 'info');
+}
+
+function editProfile() {
+  showToast('Profile editing coming soon!', 'info');
 }
