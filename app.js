@@ -1,4 +1,4 @@
-// app.js - TeleBlog Production Version - COMPLETE FIXED VERSION
+// app.js - TeleBlog Production Version - FIXED QUICK TEST LOGIN
 
 const API_BASE = "https://teleblog-indexjs.macrotiser-pk.workers.dev";
 const SUPABASE_URL = "https://hudrcdftoqcwxskhuahg.supabase.co";
@@ -68,28 +68,69 @@ document.addEventListener("DOMContentLoaded", async () => {
     showManualLogin();
   }
 
-  // Setup event listeners
-  loginBtn?.addEventListener("click", async () => {
-    if (window.teleBlogApp.tg?.initData) {
-      await authenticateWithTelegram(window.teleBlogApp.tg.initData);
-    } else {
-      showToast("Telegram authentication not available in current environment", "error");
+  // Setup event listeners - USE EVENT DELEGATION TO AVOID CONFLICTS
+  document.addEventListener('click', function(e) {
+    // Handle Telegram login button
+    if (e.target.id === 'telegram-login-btn' || e.target.closest('#telegram-login-btn')) {
+      e.preventDefault();
+      if (window.teleBlogApp.tg?.initData) {
+        authenticateWithTelegram(window.teleBlogApp.tg.initData);
+      } else {
+        showToast("Telegram authentication not available in current environment", "error");
+      }
     }
-  });
-
-  devLoginBtn?.addEventListener("click", () => {
-    useDevelopmentLogin();
+    
+    // Handle Dev login button
+    if (e.target.id === 'dev-login-btn' || e.target.closest('#dev-login-btn')) {
+      e.preventDefault();
+      useDevelopmentLogin();
+    }
   });
 
   // Emergency timeout - remove loader after 8 seconds
   setTimeout(() => {
-    if (loading.classList.contains("active")) {
+    if (loading && loading.classList.contains("active")) {
       console.log('🕒 Loader timeout - showing manual options');
       loading.classList.remove("active");
       showManualLogin();
     }
   }, 8000);
 });
+
+// DEVELOPMENT LOGIN - SIMPLIFIED AND GUARANTEED TO WORK
+function useDevelopmentLogin() {
+  console.log('🔧 Using development login');
+  
+  // Show loading immediately
+  const loading = document.getElementById("loading-overlay");
+  if (loading) loading.classList.add("active");
+  
+  // Simple dev user data
+  const devUser = {
+    id: "dev_001",
+    username: "teleblog_developer", 
+    display_name: "TeleBlog Developer",
+    role: "reader",
+    telegram_id: "dev_001"
+  };
+  
+  // Set app state
+  window.teleBlogApp.currentUser = devUser;
+  window.teleBlogApp.jwtToken = "dev_jwt_token_teleblog_2024";
+  
+  // Save to localStorage
+  localStorage.setItem("teleblog_user", JSON.stringify(devUser));
+  localStorage.setItem("teleblog_token", "dev_jwt_token_teleblog_2024");
+  
+  console.log('✅ Development login data saved');
+  
+  // Show authenticated UI after a short delay to ensure everything is ready
+  setTimeout(() => {
+    if (loading) loading.classList.remove("active");
+    showAuthenticatedUI();
+    showToast("Development login successful! 🚀", "success");
+  }, 1000);
+}
 
 async function attemptTelegramAuth() {
   const loading = document.getElementById("loading-overlay");
@@ -126,7 +167,6 @@ async function attemptTelegramAuth() {
 }
 
 function reconstructInitData(userData) {
-  // Reconstruct a basic initData string from initDataUnsafe
   const data = {
     user: JSON.stringify(userData),
     auth_date: Math.floor(Date.now() / 1000),
@@ -141,8 +181,9 @@ function reconstructInitData(userData) {
 async function authenticateWithTelegram(initData) {
   const loading = document.getElementById("loading-overlay");
   
-  loading.classList.add("active");
-  document.getElementById("telegram-login-btn").style.display = "none";
+  if (loading) loading.classList.add("active");
+  const loginBtn = document.getElementById("telegram-login-btn");
+  if (loginBtn) loginBtn.style.display = "none";
 
   try {
     console.log('📡 Sending auth request to server...');
@@ -169,7 +210,6 @@ async function authenticateWithTelegram(initData) {
     console.log('✅ Auth successful:', data);
 
     if (data.user && data.token) {
-      // Store user data and token
       window.teleBlogApp.currentUser = data.user;
       window.teleBlogApp.jwtToken = data.token;
       
@@ -187,7 +227,7 @@ async function authenticateWithTelegram(initData) {
     showToast(`Authentication failed: ${error.message}`, "error");
     showManualLogin();
   } finally {
-    loading.classList.remove("active");
+    if (loading) loading.classList.remove("active");
   }
 }
 
@@ -198,43 +238,25 @@ function showManualLogin() {
   const loginBtn = document.getElementById("telegram-login-btn");
   const devLoginBtn = document.getElementById("dev-login-btn");
   
-  loading.classList.remove("active");
-  loginBtn.style.display = "flex";
-  devLoginBtn.style.display = "flex";
-}
-
-function useDevelopmentLogin() {
-  console.log('🔧 Using development login');
-  
-  const devUser = {
-    id: "dev_001",
-    username: "teleblog_developer",
-    display_name: "TeleBlog Developer",
-    role: "reader",
-    telegram_id: "dev_001"
-  };
-  
-  window.teleBlogApp.currentUser = devUser;
-  window.teleBlogApp.jwtToken = "dev_jwt_token_teleblog_2024";
-  
-  localStorage.setItem("teleblog_user", JSON.stringify(devUser));
-  localStorage.setItem("teleblog_token", "dev_jwt_token_teleblog_2024");
-  
-  showAuthenticatedUI();
-  showToast("Development login successful! 🚀", "success");
+  if (loading) loading.classList.remove("active");
+  if (loginBtn) loginBtn.style.display = "flex";
+  if (devLoginBtn) devLoginBtn.style.display = "flex";
 }
 
 // Enhanced UI functions
 function updateProfileInfo() {
   if (window.teleBlogApp.currentUser) {
     const user = window.teleBlogApp.currentUser;
-    document.getElementById('profile-name').textContent = user.display_name || 'User';
-    document.getElementById('profile-username').textContent = user.username ? `@${user.username}` : '@user';
+    const profileName = document.getElementById('profile-name');
+    const profileUsername = document.getElementById('profile-username');
+    
+    if (profileName) profileName.textContent = user.display_name || 'User';
+    if (profileUsername) profileUsername.textContent = user.username ? `@${user.username}` : '@user';
   }
 }
 
 function logout() {
-  // Clear local storage
+  // Clear all app data
   localStorage.removeItem("teleblog_token");
   localStorage.removeItem("teleblog_user");
   localStorage.removeItem("teleblog_settings");
@@ -253,18 +275,24 @@ function logout() {
     el.style.display = 'block';
   });
   
-  document.getElementById('auth').classList.add('active');
+  const authPage = document.getElementById('auth');
+  if (authPage) authPage.classList.add('active');
   
   showToast('Logged out successfully', 'info');
 }
 
 // Page navigation
 function switchPage(id) {
+  console.log('🔄 Switching to page:', id);
+  
   // Hide all pages
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
   
   // Show selected page
-  document.getElementById(id).classList.add("active");
+  const targetPage = document.getElementById(id);
+  if (targetPage) {
+    targetPage.classList.add("active");
+  }
   
   // Update navigation
   document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
@@ -307,8 +335,10 @@ function showAuthenticatedUI() {
   });
   
   // Specifically ensure header and nav are visible
-  document.querySelector('.sticky-header').style.display = 'block';
-  document.querySelector('.bottom-nav').style.display = 'flex';
+  const header = document.querySelector('.sticky-header');
+  const nav = document.querySelector('.bottom-nav');
+  if (header) header.style.display = 'block';
+  if (nav) nav.style.display = 'flex';
 
   // Update user info
   updateProfileInfo();
@@ -372,6 +402,7 @@ async function loadPosts() {
 
 function renderPosts(posts) {
   const container = document.getElementById("posts-container");
+  if (!container) return;
   
   container.innerHTML = posts.map(post => `
     <div class="post-card">
@@ -416,6 +447,8 @@ function formatDate(dateString) {
 
 function showToast(message, type = "info") {
   const container = document.getElementById("toast-container");
+  if (!container) return;
+  
   const toast = document.createElement("div");
   toast.className = `toast toast-${type}`;
   toast.innerHTML = `
@@ -438,7 +471,6 @@ function initializeSettings() {
     currentSettings = JSON.parse(savedSettings);
     applySettings();
   } else {
-    // Default settings
     currentSettings = {
       theme: 'telegram-native',
       textSize: 'medium',
@@ -450,7 +482,6 @@ function initializeSettings() {
     saveSettings();
   }
   
-  // Set build date
   const buildDateElement = document.getElementById('build-date');
   if (buildDateElement) {
     buildDateElement.textContent = new Date().toLocaleDateString();
@@ -463,13 +494,9 @@ function saveSettings() {
 }
 
 function applySettings() {
-  // Apply theme
   document.documentElement.setAttribute('data-theme', currentSettings.theme);
-  
-  // Apply text size
   document.documentElement.setAttribute('data-text-size', currentSettings.textSize);
   
-  // Update settings UI
   const themeSelector = document.getElementById('theme-selector');
   const textSizeSelector = document.getElementById('text-size');
   const autoLoadImages = document.getElementById('auto-load-images');
@@ -482,7 +509,6 @@ function applySettings() {
   if (pushNotifications) pushNotifications.checked = currentSettings.pushNotifications;
   if (emailDigest) emailDigest.checked = currentSettings.emailDigest;
   
-  // Update wallet status
   updateWalletStatus();
 }
 
@@ -565,7 +591,6 @@ function clearCache() {
 function exportData() {
   showNavLoading();
   setTimeout(() => {
-    // Simulate data export
     const exportData = {
       user: window.teleBlogApp.currentUser,
       settings: currentSettings,
@@ -575,7 +600,6 @@ function exportData() {
     const dataStr = JSON.stringify(exportData, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     
-    // Create download link
     const link = document.createElement('a');
     link.href = URL.createObjectURL(dataBlob);
     link.download = `teleblog-export-${new Date().getTime()}.json`;
@@ -607,23 +631,21 @@ function hideNavLoading() {
 
 function switchPageWithLoading(pageId) {
   showNavLoading();
-  
   setTimeout(() => {
     switchPage(pageId);
     hideNavLoading();
-  }, 1500); // 1.5 seconds loading for navigation
+  }, 1500);
 }
 
 function loadPostsWithLoading() {
   showNavLoading();
-  
   setTimeout(() => {
     loadPosts();
     hideNavLoading();
   }, 1500);
 }
 
-// Placeholder functions for future features
+// Placeholder functions
 function showCreatePost() {
   showToast('Create post feature coming soon!', 'info');
 }
@@ -631,3 +653,21 @@ function showCreatePost() {
 function editProfile() {
   showToast('Profile editing coming soon!', 'info');
 }
+
+// Make functions globally available for onclick handlers
+window.useDevelopmentLogin = useDevelopmentLogin;
+window.openSettings = openSettings;
+window.closeSettings = closeSettings;
+window.switchPageWithLoading = switchPageWithLoading;
+window.loadPostsWithLoading = loadPostsWithLoading;
+window.showCreatePost = showCreatePost;
+window.editProfile = editProfile;
+window.logout = logout;
+window.connectWallet = connectWallet;
+window.disconnectWallet = disconnectWallet;
+window.clearCache = clearCache;
+window.exportData = exportData;
+window.contactSupport = contactSupport;
+window.changeTheme = changeTheme;
+window.changeTextSize = changeTextSize;
+window.toggleSetting = toggleSetting;
