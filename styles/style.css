@@ -94,6 +94,19 @@ html, body {
   overflow-y: auto;
 }
 
+/* FORCE SHOW HOME PAGE */
+#home {
+  display: block !important;
+}
+
+#auth {
+  display: none !important;
+}
+
+#settings {
+  display: none !important;
+}
+
 #loading-overlay {
   display: none !important; 
 }
