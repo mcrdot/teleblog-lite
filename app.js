@@ -608,19 +608,24 @@ function applySettings() {
 // Settings modal functions
 function openSettings() {
   console.log('⚙️ Opening settings');
-  switchPage('settings');
+  
+  // Hide all other pages
+  document.querySelectorAll(".page").forEach(p => {
+    p.classList.remove("active");
+  });
+  
+  // Show settings page
+  document.getElementById('settings').classList.add('active');
+  
+  // Update navigation - no active nav for settings
+  document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
 }
 
 function closeSettings() {
   console.log('⚙️ Closing settings');
-  // Hide settings page and show home page
-  document.getElementById('settings').classList.remove('active');
-  document.getElementById('home').classList.add('active');
   
-  // Update navigation
-  document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
-  const navHome = document.getElementById("nav-home");
-  if (navHome) navHome.classList.add("active");
+  // Simply switch back to home page - no need to manually hide/show
+  switchPage('home');
 }
 
 // Theme functions
