@@ -370,6 +370,7 @@ function showAuthenticatedUI() {
   switchPage('home');
 }
 
+
 async function loadPosts() {
   const container = document.getElementById("posts-container");
   

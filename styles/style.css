@@ -1,4 +1,4 @@
-/* TeleBlog - Complete Fixed CSS */
+/* TeleBlog - Fixed CSS Overhaul */
 /* Reset and Base Styles */
 * {
   margin: 0;
@@ -61,7 +61,7 @@ html, body {
 }
 
 /* ==================== */
-/* Core Layout */
+/* Core Layout - FIXED */
 /* ==================== */
 
 #app {
@@ -69,20 +69,22 @@ html, body {
   flex-direction: column;
   min-height: 100vh;
   position: relative;
-  padding-bottom: 60px;
+  padding-bottom: 60px; /* Space for bottom nav */
 }
 
-/* Page System - FIXED */
+/* Page System - COMPLETELY REWORKED */
 .page {
   display: none;
   flex: 1;
   overflow-y: auto;
+  padding-bottom: 20px;
 }
 
 .page.active {
-  display: block !important;  /* Add !important here */
+  display: block;
 }
 
+/* Settings page - FIXED positioning */
 .settings-page {
   background: var(--bg-color);
   position: fixed;
@@ -94,21 +96,27 @@ html, body {
   overflow-y: auto;
 }
 
-/* FORCE SHOW HOME PAGE */
-#home {
-  display: block !important;
-}
-
+/* Auth page - FIXED display logic */
 #auth {
-  display: none !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
 }
 
-#settings {
-  display: none !important;
+/* Main app pages */
+#home, #explore, #create, #profile {
+  display: none;
 }
 
+#home.active, #explore.active, #create.active, #profile.active {
+  display: block;
+}
+
+/* Loading states */
 #loading-overlay {
-  display: none !important; 
+  display: none;
 }
 
 .loader {
@@ -153,7 +161,7 @@ html, body {
 }
 
 /* ==================== */
-/* Sticky Header */
+/* Sticky Header - FIXED */
 /* ==================== */
 
 .sticky-header {
@@ -211,7 +219,7 @@ html, body {
 }
 
 /* ==================== */
-/* Auth Section */
+/* Auth Section - FIXED */
 /* ==================== */
 
 .auth-container {
@@ -222,6 +230,7 @@ html, body {
   min-height: 100vh;
   text-align: center;
   padding: 20px;
+  width: 100%;
 }
 
 .app-logo {
@@ -284,14 +293,14 @@ html, body {
 }
 
 .btn-outline {
-  background: transparent !important;
-  color: var(--accent-color) !important;
-  border: 2px solid var(--accent-color) !important;
+  background: transparent;
+  color: var(--accent-color);
+  border: 2px solid var(--accent-color);
 }
 
 .btn-outline:active {
-  background: var(--accent-color) !important;
-  color: white !important;
+  background: var(--accent-color);
+  color: white;
 }
 
 .btn-telegram {
@@ -332,7 +341,7 @@ html, body {
 }
 
 /* ==================== */
-/* Settings Page */
+/* Settings Page - FIXED */
 /* ==================== */
 
 .settings-header {
@@ -518,7 +527,7 @@ input:checked + .slider:before {
 }
 
 /* ==================== */
-/* Main App Sections */
+/* Main App Sections - FIXED */
 /* ==================== */
 
 .page-header {
@@ -716,7 +725,7 @@ input:checked + .slider:before {
 }
 
 /* ==================== */
-/* Bottom Navigation */
+/* Bottom Navigation - COMPLETELY FIXED */
 /* ==================== */
 
 .bottom-nav {
@@ -728,10 +737,12 @@ input:checked + .slider:before {
   border-top: 1px solid rgba(0,0,0,0.1);
   display: none;
   justify-content: space-around;
-  padding: 12px 0;
+  align-items: center;
+  padding: 8px 0;
   z-index: 1000;
   box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10px);
+  height: 60px;
 }
 
 .nav-item {
@@ -744,10 +755,14 @@ input:checked + .slider:before {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   padding: 8px 12px;
   border-radius: var(--radius);
   min-width: 60px;
+  flex: 1;
+  max-width: 25%;
+  height: 100%;
 }
 
 .nav-icon {
@@ -851,8 +866,13 @@ input:checked + .slider:before {
 /* Utility Classes - FIXED */
 /* ==================== */
 
-.guest-only { display: none !important; }
-.auth-only { display: block !important; }
+.guest-only { 
+  display: none; 
+}
+
+.auth-only { 
+  display: none; 
+}
 
 .empty-state {
   text-align: center;
