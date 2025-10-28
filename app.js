@@ -622,8 +622,7 @@ function openSettings() {
 
 function closeSettings() {
   console.log('⚙️ Closing settings');
-  
-  // Simply switch back to home page - no need to manually hide/show
+  document.getElementById('settings').classList.remove('active');
   switchPage('home');
 }
 
