@@ -25,7 +25,7 @@
     <div id="toast-container"></div>
 
     <!-- Sticky Header -->
-    <header class="sticky-header auth-only" style="display: none;">
+    <header class="sticky-header auth-only" profile-headertyle="display: none;">
       <div class="header-content">
         <div class="app-logo-header">
           <span class="logo-icon">📝</span>
@@ -259,14 +259,19 @@
     </section>
 
     <!-- Profile Section -->
-    <section id="profile" class="page auth-only">
-      <div class="profile-header">
-        <img id="profile-avatar" src="https://cdn-icons-png.flaticon.com/512/3177/3177440.png" alt="User" />
-        <div class="profile-info">
-          <h2 id="profile-name">User</h2>
-          <p id="profile-username">@username</p>
-        </div>
-      </div>
+<div class="profile-header">
+  <div class="avatar-container">
+    <img id="profile-avatar" src="https://cdn-icons-png.flaticon.com/512/3177/3177440.png" alt="User" />
+    <input type="file" id="avatar-upload" accept="image/*" style="display: none;" />
+    <button class="edit-avatar-btn" onclick="document.getElementById('avatar-upload').click()">
+      ✏️ Edit
+    </button>
+  </div>
+  <div class="profile-info">
+    <h2 id="profile-name">User</h2>
+    <p id="profile-username">@username</p>
+  </div>
+</div>
       
       <div class="profile-stats">
         <div class="stat-item">

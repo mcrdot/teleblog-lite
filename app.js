@@ -35,6 +35,9 @@ window.loadPostsWithLoading = function() {
 document.addEventListener("DOMContentLoaded", async () => {
   console.log('✅ DOM Content Loaded');
   
+// Load saved avatar when app starts
+loadSavedAvatar();
+
   // ===== TEMPORARY FIX: Check token validity =====
   const savedToken = localStorage.getItem("teleblog_token");
   const savedUser = localStorage.getItem("teleblog_user");
@@ -269,6 +272,156 @@ function showManualLogin() {
   
   console.log('✅ Login buttons shown');
 }
+
+// PROFILE EDIT
+// Profile Edit Functions
+function editProfile() {
+  console.log('👤 Opening profile editor');
+  
+  // Create edit form modal
+  const modalHTML = `
+    <div class="modal-overlay" id="profile-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Edit Profile</h3>
+          <button class="modal-close" onclick="closeProfileEditor()">×</button>
+        </div>
+        
+        <div class="profile-edit-form">
+          <div class="form-group">
+            <label>Display Name</label>
+            <input type="text" id="edit-display-name" class="form-input" 
+                   value="${window.teleBlogApp.currentUser?.display_name || ''}" />
+          </div>
+          
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="edit-username" class="form-input" 
+                   value="${window.teleBlogApp.currentUser?.username || ''}" />
+          </div>
+          
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+            <button class="btn btn-secondary" onclick="closeProfileEditor()">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+  
+  // Setup image upload
+  setupImageUpload();
+}
+
+function setupImageUpload() {
+  const uploadInput = document.getElementById('avatar-upload');
+  if (uploadInput) {
+    uploadInput.addEventListener('change', handleImageUpload);
+  }
+}
+
+async function handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  // Check if image
+  if (!file.type.startsWith('image/')) {
+    showToast('Please select a valid image file', 'error');
+    return;
+  }
+  
+  // Check file size (max 2MB)
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('Image size should be less than 2MB', 'error');
+    return;
+  }
+  
+  try {
+    showToast('Uploading image...', 'info');
+    
+    // Convert to base64 for simple storage
+    const base64 = await convertToBase64(file);
+    
+    // Save to localStorage (in real app, upload to server)
+    localStorage.setItem('user_avatar', base64);
+    
+    // Update profile image
+    const profileAvatar = document.getElementById('profile-avatar');
+    if (profileAvatar) {
+      profileAvatar.src = base64;
+    }
+    
+    showToast('Profile picture updated successfully!', 'success');
+    
+  } catch (error) {
+    console.error('Image upload error:', error);
+    showToast('Failed to upload image', 'error');
+  }
+}
+
+function convertToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+}
+
+async function saveProfile() {
+  const displayName = document.getElementById('edit-display-name').value;
+  const username = document.getElementById('edit-username').value;
+  
+  if (!displayName.trim()) {
+    showToast('Display name is required', 'error');
+    return;
+  }
+  
+  try {
+    showToast('Saving profile...', 'info');
+    
+    // Update app state
+    window.teleBlogApp.currentUser.display_name = displayName;
+    window.teleBlogApp.currentUser.username = username;
+    
+    // Save to localStorage
+    localStorage.setItem('teleblog_user', JSON.stringify(window.teleBlogApp.currentUser));
+    
+    // Update UI
+    updateProfileInfo();
+    
+    // Close modal
+    closeProfileEditor();
+    
+    showToast('Profile updated successfully!', 'success');
+    
+  } catch (error) {
+    console.error('Profile save error:', error);
+    showToast('Failed to save profile', 'error');
+  }
+}
+
+function closeProfileEditor() {
+  const modal = document.getElementById('profile-modal');
+  if (modal) {
+    modal.remove();
+  }
+}
+
+// Load saved avatar on app start
+function loadSavedAvatar() {
+  const savedAvatar = localStorage.getItem('user_avatar');
+  if (savedAvatar) {
+    const profileAvatar = document.getElementById('profile-avatar');
+    if (profileAvatar) {
+      profileAvatar.src = savedAvatar;
+    }
+  }
+}
+
+
 
 // Enhanced UI functions
 function updateProfileInfo() {
