@@ -330,7 +330,6 @@ function switchPage(id) {
       updateProfileInfo();
       break;
   }
-}
   
   console.log('✅ Page switched to:', id);
 }
