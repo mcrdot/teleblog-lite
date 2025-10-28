@@ -866,13 +866,9 @@ input:checked + .slider:before {
 /* Utility Classes - FIXED */
 /* ==================== */
 
-.guest-only { 
-  display: none; 
-}
-
-.auth-only { 
-  display: none; 
-}
+/* REPLACE with: */
+.guest-only { display: none; }
+.auth-only { display: none; }
 
 .empty-state {
   text-align: center;

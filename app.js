@@ -304,7 +304,9 @@ function switchPage(id) {
   console.log('🔄 Switching to page:', id);
   
   // Hide all pages
-  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".page").forEach(p => {
+    p.classList.remove("active");
+  });
   
   // Show selected page
   const targetPage = document.getElementById(id);
@@ -327,16 +329,8 @@ function switchPage(id) {
     case 'profile':
       updateProfileInfo();
       break;
-    case 'explore':
-      showToast('Explore section coming soon!', 'info');
-      break;
-    case 'create':
-      showToast('Ready to create amazing content!', 'info');
-      break;
-    case 'settings':
-      // Settings page doesn't need additional loading
-      break;
   }
+}
   
   console.log('✅ Page switched to:', id);
 }
@@ -619,7 +613,14 @@ function openSettings() {
 
 function closeSettings() {
   console.log('⚙️ Closing settings');
-  switchPage('home');
+  // Hide settings page and show home page
+  document.getElementById('settings').classList.remove('active');
+  document.getElementById('home').classList.add('active');
+  
+  // Update navigation
+  document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
+  const navHome = document.getElementById("nav-home");
+  if (navHome) navHome.classList.add("active");
 }
 
 // Theme functions
