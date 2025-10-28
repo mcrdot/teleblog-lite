@@ -31,8 +31,22 @@ window.loadPostsWithLoading = function() {
   loadPosts(); 
 };
 
+// Updated DOMContentLoaded Section:
 document.addEventListener("DOMContentLoaded", async () => {
   console.log('✅ DOM Content Loaded');
+  
+  // ===== TEMPORARY FIX: Check token validity =====
+  const savedToken = localStorage.getItem("teleblog_token");
+  const savedUser = localStorage.getItem("teleblog_user");
+  
+  // If token exists but is NOT our dev token, clear it (it's invalid)
+  if (savedToken && savedToken !== "dev_jwt_token_teleblog_2024") {
+    console.log('🔄 Clearing invalid token and forcing fresh login');
+    localStorage.removeItem("teleblog_token");
+    localStorage.removeItem("teleblog_user");
+    // Don't return here - let the app continue to show login screen
+  }
+  // ===== END TEMPORARY FIX =====
   
   // Initialize settings first
   initializeSettings();
@@ -48,19 +62,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.teleBlogApp.supabase = null;
   }
 
-  // Check for existing session first
-  const savedToken = localStorage.getItem("teleblog_token");
-  const savedUser = localStorage.getItem("teleblog_user");
+  // Check for existing session first (AFTER our token check above)
+  const validToken = localStorage.getItem("teleblog_token"); // Check again after potential clear
+  const validUser = localStorage.getItem("teleblog_user");
 
-  if (savedToken && savedUser) {
-    console.log('✅ Found existing session');
-    window.teleBlogApp.jwtToken = savedToken;
-    window.teleBlogApp.currentUser = JSON.parse(savedUser);
+  if (validToken && validUser) {
+    console.log('✅ Found valid existing session');
+    window.teleBlogApp.jwtToken = validToken;
+    window.teleBlogApp.currentUser = JSON.parse(validUser);
     showAuthenticatedUI();
     return;
   }
 
-  console.log('❌ No existing session found');
+  console.log('❌ No valid session found - showing login');
 
   // Initialize Telegram WebApp
   window.teleBlogApp.tg = window.Telegram?.WebApp;
@@ -342,9 +356,11 @@ function showAuthenticatedUI() {
     el.style.display = 'none';
   });
   
-  // Show auth elements
+  // Show auth elements EXCEPT settings
   document.querySelectorAll('.auth-only').forEach(el => {
-    el.style.display = 'block';
+    if (el.id !== 'settings') {
+      el.style.display = 'block';
+    }
   });
   
   // Specifically ensure header and nav are visible
@@ -362,7 +378,6 @@ function showAuthenticatedUI() {
   console.log('🔄 Switching to home page');
   switchPage('home');
 }
-
 
 async function loadPosts() {
   const container = document.getElementById("posts-container");
@@ -622,9 +637,20 @@ function openSettings() {
 
 function closeSettings() {
   console.log('⚙️ Closing settings');
-  document.getElementById('settings').classList.remove('active');
+  
+  // HIDE settings page using both methods
+  const settingsPage = document.getElementById('settings');
+  if (settingsPage) {
+    settingsPage.style.display = 'none'; // Force hide
+    settingsPage.classList.remove('active'); // Remove active state
+  }
+  
+  // SHOW home page using switchPage (which handles everything)
   switchPage('home');
+  
+  console.log('✅ Settings closed completely');
 }
+
 
 // Theme functions
 function changeTheme(theme) {
