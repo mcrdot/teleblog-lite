@@ -273,10 +273,70 @@ function showManualLogin() {
   console.log('✅ Login buttons shown');
 }
 
+// Save profile to Supabase backend
+async function saveProfileToBackend(profileData) {
+  try {
+    const response = await fetch(`${API_BASE}/profile`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${window.teleBlogApp.jwtToken}`
+      },
+      body: JSON.stringify(profileData)
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to save profile to server');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Backend profile save error:', error);
+    throw error;
+  }
+}
+
+// Upload avatar to Supabase Storage
+async function uploadAvatarToSupabase(base64Image) {
+  try {
+    // Convert base64 to blob
+    const response = await fetch(base64Image);
+    const blob = await response.blob();
+    
+    // Create filename
+    const fileName = `avatars/${window.teleBlogApp.currentUser.id}_${Date.now()}.jpg`;
+    
+    // Upload to Supabase
+    const { data, error } = await window.teleBlogApp.supabase.storage
+      .from('user-assets')
+      .upload(fileName, blob, {
+        cacheControl: '3600',
+        upsert: true
+      });
+
+    if (error) throw error;
+
+    // Get public URL
+    const { data: { publicUrl } } = window.teleBlogApp.supabase.storage
+      .from('user-assets')
+      .getPublicUrl(fileName);
+
+    return publicUrl;
+  } catch (error) {
+    console.error('Avatar upload error:', error);
+    throw error;
+  }
+}
+
+
 // PROFILE EDIT
 // Profile Edit Functions
+// Enhanced editProfile function
 function editProfile() {
   console.log('👤 Opening profile editor');
+  
+  // Close any existing modal first
+  closeProfileEditor();
   
   // Create edit form modal
   const modalHTML = `
@@ -289,15 +349,35 @@ function editProfile() {
         
         <div class="profile-edit-form">
           <div class="form-group">
-            <label>Display Name</label>
-            <input type="text" id="edit-display-name" class="form-input" 
-                   value="${window.teleBlogApp.currentUser?.display_name || ''}" />
+            <label>Profile Picture</label>
+            <div class="avatar-upload-section">
+              <div class="avatar-preview">
+                <img id="modal-avatar" src="${document.getElementById('profile-avatar')?.src || 'https://cdn-icons-png.flaticon.com/512/3177/3177440.png'}" alt="Current Avatar" />
+                <button type="button" class="btn btn-outline btn-small" onclick="document.getElementById('modal-avatar-upload').click()">
+                  Change Photo
+                </button>
+                <input type="file" id="modal-avatar-upload" accept="image/*" style="display: none;" />
+              </div>
+            </div>
           </div>
           
           <div class="form-group">
-            <label>Username</label>
+            <label for="edit-display-name">Display Name</label>
+            <input type="text" id="edit-display-name" class="form-input" 
+                   value="${window.teleBlogApp.currentUser?.display_name || ''}" 
+                   placeholder="Enter your display name" />
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-username">Username</label>
             <input type="text" id="edit-username" class="form-input" 
-                   value="${window.teleBlogApp.currentUser?.username || ''}" />
+                   value="${window.teleBlogApp.currentUser?.username || ''}" 
+                   placeholder="Enter username (without @)" />
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-bio">Bio</label>
+            <textarea id="edit-bio" class="form-input" rows="3" placeholder="Tell everyone about yourself...">${window.teleBlogApp.currentUser?.bio || ''}</textarea>
           </div>
           
           <div class="form-actions">
@@ -311,54 +391,107 @@ function editProfile() {
   
   document.body.insertAdjacentHTML('beforeend', modalHTML);
   
-  // Setup image upload
-  setupImageUpload();
+  // Setup modal image upload
+  setupModalImageUpload();
 }
 
-function setupImageUpload() {
-  const uploadInput = document.getElementById('avatar-upload');
+// Setup modal-specific image upload
+function setupModalImageUpload() {
+  const uploadInput = document.getElementById('modal-avatar-upload');
   if (uploadInput) {
-    uploadInput.addEventListener('change', handleImageUpload);
+    uploadInput.addEventListener('change', handleModalImageUpload);
   }
 }
 
-async function handleImageUpload(event) {
+async function handleModalImageUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
   
-  // Check if image
-  if (!file.type.startsWith('image/')) {
-    showToast('Please select a valid image file', 'error');
-    return;
-  }
-  
-  // Check file size (max 2MB)
-  if (file.size > 2 * 1024 * 1024) {
-    showToast('Image size should be less than 2MB', 'error');
-    return;
-  }
-  
   try {
-    showToast('Uploading image...', 'info');
+    // Validate and process image
+    if (!file.type.startsWith('image/')) {
+      showToast('Please select a valid image file', 'error');
+      return;
+    }
     
-    // Convert to base64 for simple storage
+    if (file.size > 2 * 1024 * 1024) {
+      showToast('Image size should be less than 2MB', 'error');
+      return;
+    }
+    
     const base64 = await convertToBase64(file);
     
-    // Save to localStorage (in real app, upload to server)
-    localStorage.setItem('user_avatar', base64);
+    // Update modal preview
+    const modalAvatar = document.getElementById('modal-avatar');
+    if (modalAvatar) {
+      modalAvatar.src = base64;
+    }
     
-    // Update profile image
+    // Update main profile avatar preview
     const profileAvatar = document.getElementById('profile-avatar');
     if (profileAvatar) {
       profileAvatar.src = base64;
     }
     
-    showToast('Profile picture updated successfully!', 'success');
+    // Save to localStorage immediately
+    localStorage.setItem('user_avatar', base64);
+    
+    showToast('Profile picture updated!', 'success');
     
   } catch (error) {
-    console.error('Image upload error:', error);
+    console.error('Modal image upload error:', error);
     showToast('Failed to upload image', 'error');
   }
+}
+
+// Add image compression for better performance
+function compressImage(base64, maxWidth = 200, quality = 0.8) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.src = base64;
+    
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Calculate new dimensions
+      let width = img.width;
+      let height = img.height;
+      
+      if (width > maxWidth) {
+        height = (height * maxWidth) / width;
+        width = maxWidth;
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    
+    img.onerror = function() {
+      resolve(base64); // Fallback to original
+    };
+  });
+}
+
+// Enhanced convertToBase64 with compression
+async function convertToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = async () => {
+      try {
+        // Compress image before saving
+        const compressedBase64 = await compressImage(reader.result);
+        resolve(compressedBase64);
+      } catch (error) {
+        resolve(reader.result); // Fallback to original
+      }
+    };
+    reader.onerror = error => reject(error);
+  });
 }
 
 function convertToBase64(file) {
@@ -371,10 +504,11 @@ function convertToBase64(file) {
 }
 
 async function saveProfile() {
-  const displayName = document.getElementById('edit-display-name').value;
-  const username = document.getElementById('edit-username').value;
+  const displayName = document.getElementById('edit-display-name')?.value.trim();
+  const username = document.getElementById('edit-username')?.value.trim();
+  const bio = document.getElementById('edit-bio')?.value.trim();
   
-  if (!displayName.trim()) {
+  if (!displayName) {
     showToast('Display name is required', 'error');
     return;
   }
@@ -382,12 +516,35 @@ async function saveProfile() {
   try {
     showToast('Saving profile...', 'info');
     
-    // Update app state
-    window.teleBlogApp.currentUser.display_name = displayName;
-    window.teleBlogApp.currentUser.username = username;
+    // Get current avatar (could be base64 or URL)
+    let avatarUrl = document.getElementById('profile-avatar')?.src;
     
-    // Save to localStorage
+    // If avatar is base64 (new upload), save to Supabase
+    if (avatarUrl && avatarUrl.startsWith('data:image')) {
+      showToast('Uploading profile picture...', 'info');
+      avatarUrl = await uploadAvatarToSupabase(avatarUrl);
+    }
+    
+    // Prepare profile data
+    const profileData = {
+      display_name: displayName,
+      username: username,
+      bio: bio,
+      avatar_url: avatarUrl,
+      updated_at: new Date().toISOString()
+    };
+    
+    // Update app state
+    window.teleBlogApp.currentUser = {
+      ...window.teleBlogApp.currentUser,
+      ...profileData
+    };
+    
+    // Save to localStorage (immediate UI update)
     localStorage.setItem('teleblog_user', JSON.stringify(window.teleBlogApp.currentUser));
+    
+    // Save to Supabase backend
+    await saveProfileToBackend(profileData);
     
     // Update UI
     updateProfileInfo();
@@ -395,11 +552,23 @@ async function saveProfile() {
     // Close modal
     closeProfileEditor();
     
-    showToast('Profile updated successfully!', 'success');
+    showToast('Profile updated successfully! 🎉', 'success');
     
   } catch (error) {
     console.error('Profile save error:', error);
-    showToast('Failed to save profile', 'error');
+    showToast('Failed to save profile. Using local storage only.', 'warning');
+    
+    // Fallback: still update local state even if backend fails
+    const displayName = document.getElementById('edit-display-name')?.value.trim();
+    const username = document.getElementById('edit-username')?.value.trim();
+    
+    if (displayName) {
+      window.teleBlogApp.currentUser.display_name = displayName;
+      window.teleBlogApp.currentUser.username = username;
+      localStorage.setItem('teleblog_user', JSON.stringify(window.teleBlogApp.currentUser));
+      updateProfileInfo();
+      closeProfileEditor();
+    }
   }
 }
 
@@ -431,7 +600,16 @@ function updateProfileInfo() {
     const profileUsername = document.getElementById('profile-username');
     
     if (profileName) profileName.textContent = user.display_name || 'User';
-    if (profileUsername) profileUsername.textContent = user.username ? `@${user.username}` : '@user';
+    if (profileUsername) {
+      profileUsername.textContent = user.username ? `@${user.username}` : '@user';
+    }
+    
+    // Update avatar from saved data
+    const savedAvatar = localStorage.getItem('user_avatar');
+    const profileAvatar = document.getElementById('profile-avatar');
+    if (profileAvatar && savedAvatar) {
+      profileAvatar.src = savedAvatar;
+    }
     
     console.log('✅ Profile info updated:', user.display_name);
   }
