@@ -696,18 +696,19 @@ function switchPage(id) {
     navButton.classList.add("active");
   }
   
-  // Load data for the active page
+  // Load data for the active page - UPDATE THIS PART:
   switch(id) {
     case 'home':
       loadPosts();
       break;
     case 'profile':
-      updateProfileInfo();
+      updateProfileInfo(); // MOVE PROFILE UPDATE HERE!
       break;
   }
   
   console.log('✅ Page switched to:', id);
 }
+
 
 function showAuthenticatedUI() {
   console.log('🎉 showAuthenticatedUI called');
@@ -732,12 +733,7 @@ function showAuthenticatedUI() {
 
   console.log('✅ UI elements visibility updated');
 
-  // Update user info
-  updateProfileInfo();
-
   // Switch to home page
-  console.log('✅ UI elements visibility updated');
-  updateProfileInfo();
   console.log('🔄 Switching to home page');
   switchPage('home');
 
