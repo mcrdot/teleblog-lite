@@ -590,28 +590,24 @@ function loadSavedAvatar() {
   }
 }
 
-
-
 // Enhanced UI functions
+// UPDATED VERSION:
 function updateProfileInfo() {
   if (window.teleBlogApp.currentUser) {
     const user = window.teleBlogApp.currentUser;
     const profileName = document.getElementById('profile-name');
     const profileUsername = document.getElementById('profile-username');
+    const profileAvatar = document.getElementById('profile-avatar');
     
     if (profileName) profileName.textContent = user.display_name || 'User';
-    if (profileUsername) {
-      profileUsername.textContent = user.username ? `@${user.username}` : '@user';
+    if (profileUsername) profileUsername.textContent = user.username ? `@${user.username}` : '@user';
+    
+    // ✅ NEW: Update avatar from user data
+    if (profileAvatar && user.avatar_url) {
+      profileAvatar.src = user.avatar_url;
     }
     
-    // Update avatar from saved data
-    const savedAvatar = localStorage.getItem('user_avatar');
-    const profileAvatar = document.getElementById('profile-avatar');
-    if (profileAvatar && savedAvatar) {
-      profileAvatar.src = savedAvatar;
-    }
-    
-    console.log('✅ Profile info updated:', user.display_name);
+    console.log('✅ Profile info updated:', user.display_name, 'Avatar:', user.avatar_url);
   }
 }
 

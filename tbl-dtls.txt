@@ -1,0 +1,37 @@
+users table schema:
+===================
+create table public.users (
+  id uuid not null default gen_random_uuid (),
+  telegram_id text not null,
+  username text null,
+  first_name text null,
+  last_name text null,
+  display_name text not null,
+  role text null default 'reader'::text,
+  profile_completed boolean null default false,
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  constraint users_pkey primary key (id),
+  constraint users_telegram_id_key unique (telegram_id)
+) TABLESPACE pg_default;
+
+real example of telegram user record inside users table:
+========================================================
+INSERT INTO "public"."users" ("id", "telegram_id", "username", "first_name", "last_name", "display_name", "role", "profile_completed", "created_at", "updated_at") VALUES ('50ef2c44-5be2-4233-821d-773cf1da8406', '6529191571', '@vt_global', '💠 HKR ️', '️▌full-stack system architect ▌', '💠 HKR ️ ️▌full-stack system architect ▌', 'reader', 'true', '2025-10-28 04:10:19.566+00', '2025-10-30 01:48:17.247+00');
+
+how a telegram user record should be stored in supabase users table and displayed in our web app:
+=================================================================================================
+column	display requirements 
+------	--------------------
+role 	should be stored in users table and consisted of multi-choice in profile settings 
+	by selecting as checkmark reader/writer/influencer, and the all selected roles should be
+	displaed as vertically stacked in user's profile page 
+display_name next to/right after user's profile image
+username should be placed under/below the user's display_name with "@" handle
+
+
+CURRENTLY WHEN OPENING IN MY TELEGRAM DESKTOP ITS SHOWING TOAST POPUP:
+Showing demo content - API authentication required for real posts
+
+CURRENTLY WHEN OPENING IN MY TELEGRAM ANDROID ITS SHOWING TOAST POPUP:
+Authentication failed: Server returned 500: {"error":"Internal server error","details":"btoa() can only operate on characters in the Latin1 (ISO/IEC 8859-1) range."}×

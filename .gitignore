@@ -6,6 +6,7 @@ yarn-error.log*
 
 # others
 ignoreMe.txt
+tbl-dtls.txt
 
 # Environment variables
 .env
