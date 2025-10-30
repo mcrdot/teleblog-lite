@@ -597,67 +597,51 @@ function loadSavedAvatar() {
 function updateProfileInfo() {
   if (window.teleBlogApp.currentUser) {
     const user = window.teleBlogApp.currentUser;
+    const profileName = document.getElementById('profile-name');
+    const profileUsername = document.getElementById('profile-username');
     const profileAvatar = document.getElementById('profile-avatar');
+    const profileSection = document.getElementById('profile');
     
-    // DEBUG: Check if element exists and has proper attributes
-    console.log('🔍 DEBUG Profile Avatar Element:', {
-      element: profileAvatar,
-      exists: !!profileAvatar,
-      currentSrc: profileAvatar?.src,
-      complete: profileAvatar?.complete,
-      naturalWidth: profileAvatar?.naturalWidth,
-      naturalHeight: profileAvatar?.naturalHeight
+    // DEBUG: Check profile section visibility
+    console.log('🔍 DEBUG Profile Section:', {
+      profileSection: profileSection,
+      isVisible: profileSection?.offsetParent !== null,
+      display: profileSection?.style.display,
+      classList: profileSection?.classList
     });
     
+    if (profileName) {
+      profileName.textContent = user.display_name || 'User';
+      console.log('✅ Set profile name:', user.display_name);
+    }
+    
+    if (profileUsername) {
+      profileUsername.textContent = user.username ? `@${user.username}` : '@user';
+      console.log('✅ Set profile username:', user.username);
+    }
+    
+    // 🚀 DIRECT TELEGRAM ACCESS (No Proxy) - REPLACE THIS PART:
     if (profileAvatar && user.avatar_url) {
-      const telegramPath = user.avatar_url.replace('https://', '');
-      const proxyUrl = `${API_BASE}/proxy/avatar/${encodeURIComponent(telegramPath)}`;
+      // Method 1: Try Telegram URL directly
+      profileAvatar.src = user.avatar_url;
+      console.log('🎯 Using Telegram URL directly:', user.avatar_url);
       
-      console.log('🔍 DEBUG Setting avatar src to:', proxyUrl);
-      profileAvatar.src = proxyUrl;
-      
-      // Enhanced event listeners for debugging
-      profileAvatar.onload = function() {
-        console.log('✅ Avatar LOADED successfully:', {
-          src: this.src,
-          naturalWidth: this.naturalWidth,
-          naturalHeight: this.naturalHeight,
-          complete: this.complete
-        });
-        
-        // Force a re-render
-        this.style.display = 'none';
-        this.offsetHeight; // Trigger reflow
-        this.style.display = '';
-      };
-      
+      // Add error handling to see if direct access works
       profileAvatar.onerror = function() {
-        console.log('❌ Avatar ERROR:', {
-          src: this.src,
-          complete: this.complete
-        });
-        this.src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png";
+        console.log('❌ Direct Telegram URL failed, trying proxy...');
+        // Fallback to proxy
+        const telegramPath = user.avatar_url.replace('https://', '');
+        const proxyUrl = `${API_BASE}/proxy/avatar/${encodeURIComponent(telegramPath)}`;
+        this.src = proxyUrl;
+        console.log('🔄 Using proxy URL:', proxyUrl);
       };
       
-      // Check if image loads after a delay
-      setTimeout(() => {
-        console.log('🔍 DEBUG After 2s check:', {
-          src: profileAvatar.src,
-          complete: profileAvatar.complete,
-          naturalWidth: profileAvatar.naturalWidth,
-          naturalHeight: profileAvatar.naturalHeight
-        });
-        
-        if (profileAvatar.naturalWidth === 0) {
-          console.log('⚠️ Image has zero dimensions - might be display issue');
-        }
-      }, 2000);
-      
+      profileAvatar.onload = function() {
+        console.log('✅ Direct Telegram avatar loaded successfully!');
+      };
     }
   }
 }
-
-
 
 
 
@@ -752,8 +736,23 @@ function showAuthenticatedUI() {
   updateProfileInfo();
 
   // Switch to home page
+  console.log('✅ UI elements visibility updated');
+  updateProfileInfo();
   console.log('🔄 Switching to home page');
   switchPage('home');
+
+  // ADD THIS CODE RIGHT HERE:
+  // Check if profile section is active after a delay
+  setTimeout(() => {
+    const profileSection = document.getElementById('profile');
+    if (profileSection && profileSection.classList.contains('active')) {
+      console.log('🎯 Profile section is active, updating info...');
+      updateProfileInfo();
+    } else {
+      console.log('⚠️ Profile section is NOT active - current active page:', 
+        document.querySelector('.page.active')?.id);
+    }
+  }, 1000);
 }
 
 async function loadPosts() {
