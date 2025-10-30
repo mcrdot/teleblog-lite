@@ -592,34 +592,46 @@ function loadSavedAvatar() {
 
 // Enhanced UI functions
 // UPDATED VERSION:
+//
+//
 function updateProfileInfo() {
   if (window.teleBlogApp.currentUser) {
     const user = window.teleBlogApp.currentUser;
+    const profileName = document.getElementById('profile-name');
+    const profileUsername = document.getElementById('profile-username');
     const profileAvatar = document.getElementById('profile-avatar');
     
-    // Try to get photo from Telegram WebApp directly
-    if (window.teleBlogApp.tg?.initDataUnsafe?.user?.photo_url) {
-      profileAvatar.src = window.teleBlogApp.tg.initDataUnsafe.user.photo_url;
-      console.log('✅ Using Telegram WebApp direct photo URL');
+    if (profileName) profileName.textContent = user.display_name || 'User';
+    if (profileUsername) {
+      profileUsername.textContent = user.username ? `@${user.username}` : '@user';
     }
-    // Fallback to our stored URL with CORS workaround
-    else if (profileAvatar && user.avatar_url) {
-      // Add timestamp to bypass cache and try
-      profileAvatar.src = user.avatar_url + '?t=' + Date.now();
-      console.log('✅ Using stored avatar URL with cache bust');
-    }
-    else {
+    
+    // FIXED: Use our proxy endpoint to bypass CORS
+    if (profileAvatar && user.avatar_url) {
+      // Extract the path from the Telegram URL and encode it
+      const telegramPath = user.avatar_url.replace('https://', '');
+      const proxyUrl = `${API_BASE}/proxy/avatar/${encodeURIComponent(telegramPath)}`;
+      
+      profileAvatar.src = proxyUrl;
+      console.log('✅ Using proxied avatar URL:', proxyUrl);
+      
+      profileAvatar.onerror = function() {
+        console.log('❌ Proxied avatar failed, using fallback');
+        this.src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png";
+        this.onerror = null; // Prevent infinite loop
+      };
+      
+      profileAvatar.onload = function() {
+        console.log('✅ Proxied avatar loaded successfully');
+      };
+    } else if (profileAvatar) {
       profileAvatar.src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png";
     }
     
-    // Enhanced error handling
-    profileAvatar.onerror = function() {
-      console.log('❌ All avatar methods failed, using default');
-      this.src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png";
-      this.onerror = null; // Prevent infinite loop
-    };
+    console.log('✅ Profile info updated:', user.display_name);
   }
 }
+
 
 function logout() {
   console.log('🚪 Logging out...');
