@@ -595,37 +595,31 @@ function loadSavedAvatar() {
 function updateProfileInfo() {
   if (window.teleBlogApp.currentUser) {
     const user = window.teleBlogApp.currentUser;
-    const profileName = document.getElementById('profile-name');
-    const profileUsername = document.getElementById('profile-username');
     const profileAvatar = document.getElementById('profile-avatar');
     
-    if (profileName) profileName.textContent = user.display_name || 'User';
-    if (profileUsername) {
-      profileUsername.textContent = user.username ? `@${user.username}` : '@user';
+    // Try to get photo from Telegram WebApp directly
+    if (window.teleBlogApp.tg?.initDataUnsafe?.user?.photo_url) {
+      profileAvatar.src = window.teleBlogApp.tg.initDataUnsafe.user.photo_url;
+      console.log('✅ Using Telegram WebApp direct photo URL');
     }
-    
-    // FIXED: Use avatar_url DIRECTLY without any modification
-    if (profileAvatar && user.avatar_url) {
-      profileAvatar.src = user.avatar_url; // JUST THIS LINE!
-      console.log('✅ Using Telegram avatar URL directly:', user.avatar_url);
-      
-      profileAvatar.onerror = function() {
-        console.log('❌ Telegram avatar failed, using fallback');
-        this.src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png";
-      };
-      
-      profileAvatar.onload = function() {
-        console.log('✅ Telegram avatar loaded successfully');
-      };
-    } else if (profileAvatar) {
-      // Fallback to default avatar
+    // Fallback to our stored URL with CORS workaround
+    else if (profileAvatar && user.avatar_url) {
+      // Add timestamp to bypass cache and try
+      profileAvatar.src = user.avatar_url + '?t=' + Date.now();
+      console.log('✅ Using stored avatar URL with cache bust');
+    }
+    else {
       profileAvatar.src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png";
     }
     
-    console.log('✅ Profile info updated:', user.display_name);
+    // Enhanced error handling
+    profileAvatar.onerror = function() {
+      console.log('❌ All avatar methods failed, using default');
+      this.src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png";
+      this.onerror = null; // Prevent infinite loop
+    };
   }
 }
-
 
 function logout() {
   console.log('🚪 Logging out...');
