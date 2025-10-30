@@ -597,40 +597,68 @@ function loadSavedAvatar() {
 function updateProfileInfo() {
   if (window.teleBlogApp.currentUser) {
     const user = window.teleBlogApp.currentUser;
-    const profileName = document.getElementById('profile-name');
-    const profileUsername = document.getElementById('profile-username');
     const profileAvatar = document.getElementById('profile-avatar');
     
-    if (profileName) profileName.textContent = user.display_name || 'User';
-    if (profileUsername) {
-      profileUsername.textContent = user.username ? `@${user.username}` : '@user';
-    }
+    // DEBUG: Check if element exists and has proper attributes
+    console.log('🔍 DEBUG Profile Avatar Element:', {
+      element: profileAvatar,
+      exists: !!profileAvatar,
+      currentSrc: profileAvatar?.src,
+      complete: profileAvatar?.complete,
+      naturalWidth: profileAvatar?.naturalWidth,
+      naturalHeight: profileAvatar?.naturalHeight
+    });
     
-    // FIXED: Use our proxy endpoint to bypass CORS
     if (profileAvatar && user.avatar_url) {
-      // Extract the path from the Telegram URL and encode it
       const telegramPath = user.avatar_url.replace('https://', '');
       const proxyUrl = `${API_BASE}/proxy/avatar/${encodeURIComponent(telegramPath)}`;
       
+      console.log('🔍 DEBUG Setting avatar src to:', proxyUrl);
       profileAvatar.src = proxyUrl;
-      console.log('✅ Using proxied avatar URL:', proxyUrl);
+      
+      // Enhanced event listeners for debugging
+      profileAvatar.onload = function() {
+        console.log('✅ Avatar LOADED successfully:', {
+          src: this.src,
+          naturalWidth: this.naturalWidth,
+          naturalHeight: this.naturalHeight,
+          complete: this.complete
+        });
+        
+        // Force a re-render
+        this.style.display = 'none';
+        this.offsetHeight; // Trigger reflow
+        this.style.display = '';
+      };
       
       profileAvatar.onerror = function() {
-        console.log('❌ Proxied avatar failed, using fallback');
+        console.log('❌ Avatar ERROR:', {
+          src: this.src,
+          complete: this.complete
+        });
         this.src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png";
-        this.onerror = null; // Prevent infinite loop
       };
       
-      profileAvatar.onload = function() {
-        console.log('✅ Proxied avatar loaded successfully');
-      };
-    } else if (profileAvatar) {
-      profileAvatar.src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png";
+      // Check if image loads after a delay
+      setTimeout(() => {
+        console.log('🔍 DEBUG After 2s check:', {
+          src: profileAvatar.src,
+          complete: profileAvatar.complete,
+          naturalWidth: profileAvatar.naturalWidth,
+          naturalHeight: profileAvatar.naturalHeight
+        });
+        
+        if (profileAvatar.naturalWidth === 0) {
+          console.log('⚠️ Image has zero dimensions - might be display issue');
+        }
+      }, 2000);
+      
     }
-    
-    console.log('✅ Profile info updated:', user.display_name);
   }
 }
+
+
+
 
 
 function logout() {
