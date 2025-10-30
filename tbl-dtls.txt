@@ -19,6 +19,9 @@ real example of telegram user record inside users table:
 ========================================================
 INSERT INTO "public"."users" ("id", "telegram_id", "username", "first_name", "last_name", "display_name", "role", "profile_completed", "created_at", "updated_at") VALUES ('50ef2c44-5be2-4233-821d-773cf1da8406', '6529191571', '@vt_global', '💠 HKR ️', '️▌full-stack system architect ▌', '💠 HKR ️ ️▌full-stack system architect ▌', 'reader', 'true', '2025-10-28 04:10:19.566+00', '2025-10-30 01:48:17.247+00');
 
+avatar_url
+https://t.me/i/userpic/320/IBejPLMh-0KK8smivdjnQdRPv4CrgtgvSvDGVFV0PcOgOZUOC4hMp2JEpfBh6rTn.svg
+
 how a telegram user record should be stored in supabase users table and displayed in our web app:
 =================================================================================================
 column	display requirements 

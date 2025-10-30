@@ -600,14 +600,23 @@ function updateProfileInfo() {
     const profileAvatar = document.getElementById('profile-avatar');
     
     if (profileName) profileName.textContent = user.display_name || 'User';
-    if (profileUsername) profileUsername.textContent = user.username ? `@${user.username}` : '@user';
-    
-    // ✅ NEW: Update avatar from user data
-    if (profileAvatar && user.avatar_url) {
-      profileAvatar.src = user.avatar_url;
+    if (profileUsername) {
+      profileUsername.textContent = user.username ? `@${user.username}` : '@user';
     }
     
-    console.log('✅ Profile info updated:', user.display_name, 'Avatar:', user.avatar_url);
+    // FIX: Use Telegram avatar URL if available
+    if (profileAvatar) {
+      if (user.avatar_url) {
+        // Use Telegram profile photo
+        profileAvatar.src = user.avatar_url;
+        console.log('✅ Loading Telegram avatar:', user.avatar_url);
+      } else {
+        // Fallback to default avatar
+        profileAvatar.src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png";
+      }
+    }
+    
+    console.log('✅ Profile info updated:', user.display_name);
   }
 }
 
