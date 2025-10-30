@@ -613,7 +613,7 @@ function updateProfileInfo() {
       } 
       // If it's just the hash, construct the full URL
       else if (user.avatar_url && !user.avatar_url.includes('://')) {
-        profileAvatar.src = `https://t.me/i/userpic/320/${user.avatar_url}`;
+        profileAvatar.src = `https://t.me/i/userpic/${user.avatar_url}`;
         console.log('✅ Constructed Telegram avatar URL from hash');
       }
       else {
