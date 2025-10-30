@@ -604,17 +604,33 @@ function updateProfileInfo() {
       profileUsername.textContent = user.username ? `@${user.username}` : '@user';
     }
     
-    // FIX: Convert Telegram userpic URL to actual image URL
+    // FIXED: Proper Telegram avatar URL handling
     if (profileAvatar && user.avatar_url) {
-      if (user.avatar_url.includes('/i/userpic/')) {
-        // Convert Telegram userpic URL to direct image URL
-        const directAvatarUrl = user.avatar_url.replace('/i/userpic/', '/i/userpic/320/');
-        profileAvatar.src = directAvatarUrl;
-        console.log('✅ Converted Telegram avatar URL:', directAvatarUrl);
-      } else {
-        // Use as-is if it's already a direct image URL
+      // If it's already a full Telegram userpic URL, use it directly
+      if (user.avatar_url.startsWith('https://t.me/i/userpic/')) {
+        profileAvatar.src = user.avatar_url;
+        console.log('✅ Using direct Telegram avatar URL:', user.avatar_url);
+      } 
+      // If it's just the hash, construct the full URL
+      else if (user.avatar_url && !user.avatar_url.includes('://')) {
+        profileAvatar.src = `https://t.me/i/userpic/320/${user.avatar_url}`;
+        console.log('✅ Constructed Telegram avatar URL from hash');
+      }
+      else {
+        // Use as-is for other URLs
         profileAvatar.src = user.avatar_url;
       }
+      
+      // Add error handling for failed loads
+      profileAvatar.onerror = function() {
+        console.log('❌ Avatar failed to load, using fallback');
+        this.src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png";
+      };
+      
+      profileAvatar.onload = function() {
+        console.log('✅ Avatar loaded successfully');
+      };
+      
     } else if (profileAvatar) {
       // Fallback to default avatar
       profileAvatar.src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png";
@@ -623,7 +639,6 @@ function updateProfileInfo() {
     console.log('✅ Profile info updated:', user.display_name);
   }
 }
-
 
 
 function logout() {
