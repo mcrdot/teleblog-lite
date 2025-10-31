@@ -245,6 +245,12 @@ async function authenticateWithTelegram(initData) {
       window.teleBlogApp.currentUser = data.user;
       window.teleBlogApp.jwtToken = data.token;
       
+      // 🎯 STEP 3: PRE-CACHE THE AVATAR IMMEDIATELY AFTER LOGIN
+      if (data.user.id && data.user.avatar_url) {
+        console.log('💾 Pre-caching avatar after login...');
+        cacheUserAvatar(data.user.id, data.user.avatar_url);
+      }
+      
       localStorage.setItem("teleblog_token", data.token);
       localStorage.setItem("teleblog_user", JSON.stringify(data.user));
 
@@ -260,6 +266,7 @@ async function authenticateWithTelegram(initData) {
     showManualLogin();
   }
 }
+
 
 function showManualLogin() {
   console.log('👤 Showing manual login options');
@@ -590,59 +597,148 @@ function loadSavedAvatar() {
   }
 }
 
+
+
+// ----------------------------------
+// ==================== 
+// PROFILE PHOTO CACHING SYSTEM
+// ====================
+
+// Generate unique cache key for each user
+function getAvatarCacheKey(userId) {
+  return `teleblog_avatar_${userId}`;
+}
+
+// Save avatar to localStorage with timestamp
+function cacheUserAvatar(userId, avatarUrl) {
+  try {
+    const cacheData = {
+      url: avatarUrl,
+      timestamp: Date.now(),
+      userId: userId
+    };
+    localStorage.setItem(getAvatarCacheKey(userId), JSON.stringify(cacheData));
+    console.log('💾 Avatar cached for user:', userId);
+    return true;
+  } catch (error) {
+    console.error('❌ Avatar caching failed:', error);
+    return false;
+  }
+}
+
+// Get cached avatar (check if expired)
+function getCachedAvatar(userId, maxAge = 24 * 60 * 60 * 1000) { // 24 hours default
+  try {
+    const cached = localStorage.getItem(getAvatarCacheKey(userId));
+    if (!cached) return null;
+    
+    const cacheData = JSON.parse(cached);
+    const isExpired = Date.now() - cacheData.timestamp > maxAge;
+    
+    if (isExpired) {
+      console.log('🕐 Cached avatar expired for user:', userId);
+      return null;
+    }
+    
+    console.log('⚡ Loading avatar from cache for user:', userId);
+    return cacheData.url;
+  } catch (error) {
+    console.error('❌ Avatar cache read failed:', error);
+    return null;
+  }
+}
+
+// Clear specific user's avatar cache
+function clearAvatarCache(userId) {
+  localStorage.removeItem(getAvatarCacheKey(userId));
+  console.log('🗑️ Cleared avatar cache for user:', userId);
+}
+
+
+
+
+// ++++++++++++++++++++++++
+// ---------------------------------
 // Enhanced UI functions
 // UPDATED VERSION:
-//
-//
+// ----------------------------------
+// ----------------------------------
 function updateProfileInfo() {
   if (window.teleBlogApp.currentUser) {
     const user = window.teleBlogApp.currentUser;
     const profileName = document.getElementById('profile-name');
     const profileUsername = document.getElementById('profile-username');
     const profileAvatar = document.getElementById('profile-avatar');
-    const profileSection = document.getElementById('profile');
     
-    // DEBUG: Check profile section visibility
-    console.log('🔍 DEBUG Profile Section:', {
-      profileSection: profileSection,
-      isVisible: profileSection?.offsetParent !== null,
-      display: profileSection?.style.display,
-      classList: profileSection?.classList
-    });
-    
-    if (profileName) {
-      profileName.textContent = user.display_name || 'User';
-      console.log('✅ Set profile name:', user.display_name);
-    }
-    
+    if (profileName) profileName.textContent = user.display_name || 'User';
     if (profileUsername) {
       profileUsername.textContent = user.username ? `@${user.username}` : '@user';
-      console.log('✅ Set profile username:', user.username);
     }
     
-    // 🚀 DIRECT TELEGRAM ACCESS (No Proxy) - REPLACE THIS PART:
-    if (profileAvatar && user.avatar_url) {
-      // Method 1: Try Telegram URL directly
-      profileAvatar.src = user.avatar_url;
-      console.log('🎯 Using Telegram URL directly:', user.avatar_url);
+    // ========== INSTANT AVATAR LOADING SYSTEM ==========
+    if (profileAvatar && user.id) {
+      // STEP 1: Try to load from cache INSTANTLY
+      const cachedAvatar = getCachedAvatar(user.id);
       
-      // Add error handling to see if direct access works
-      profileAvatar.onerror = function() {
-        console.log('❌ Direct Telegram URL failed, trying proxy...');
-        // Fallback to proxy
-        const telegramPath = user.avatar_url.replace('https://', '');
-        const proxyUrl = `${API_BASE}/proxy/avatar/${encodeURIComponent(telegramPath)}`;
-        this.src = proxyUrl;
-        console.log('🔄 Using proxy URL:', proxyUrl);
-      };
-      
-      profileAvatar.onload = function() {
-        console.log('✅ Direct Telegram avatar loaded successfully!');
-      };
+      if (cachedAvatar) {
+        // ⚡ INSTANT LOAD: Set cached avatar immediately
+        profileAvatar.src = cachedAvatar;
+        console.log('⚡ Avatar loaded instantly from cache');
+        
+        // Add success handler for cached image
+        profileAvatar.onload = function() {
+          console.log('✅ Cached avatar displayed successfully');
+        };
+        
+        profileAvatar.onerror = function() {
+          console.log('❌ Cached avatar failed, fetching fresh...');
+          // If cached image fails, fetch fresh and update cache
+          loadFreshAvatar(user, profileAvatar);
+        };
+        
+      } else {
+        // STEP 2: No cache exists, load fresh
+        console.log('🔄 No cached avatar found, loading fresh...');
+        loadFreshAvatar(user, profileAvatar);
+      }
     }
+    // ========== END INSTANT AVATAR SYSTEM ==========
+    
+    console.log('✅ Profile info updated:', user.display_name);
   }
 }
 
+// New function to handle fresh avatar loading
+function loadFreshAvatar(user, profileAvatar) {
+  if (!user.avatar_url) {
+    profileAvatar.src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png";
+    return;
+  }
+  
+  // Use proxy URL for fresh loading
+  const telegramPath = user.avatar_url.replace('https://', '');
+  const proxyUrl = `${API_BASE}/proxy/avatar/${encodeURIComponent(telegramPath)}`;
+  
+  console.log('🔄 Loading fresh avatar:', proxyUrl);
+  profileAvatar.src = proxyUrl;
+  
+  // Handle successful fresh load
+  profileAvatar.onload = function() {
+    console.log('✅ Fresh avatar loaded successfully');
+    
+    // 🎯 CRITICAL: Cache the successful avatar URL
+    if (user.id && user.avatar_url) {
+      cacheUserAvatar(user.id, user.avatar_url); // Cache the original URL, not proxy
+      console.log('💾 Fresh avatar cached for future instant loading');
+    }
+  };
+  
+  // Handle fresh load failure
+  profileAvatar.onerror = function() {
+    console.log('❌ Fresh avatar failed, using fallback');
+    this.src = "https://cdn-icons-png.flaticon.com/512/3177/3177440.png";
+  };
+}
 
 
 function logout() {
@@ -941,7 +1037,36 @@ function showToast(message, type = "info") {
   }, 5000);
 }
 
-// Settings Functions
+// ====================
+// SETTINGS FUNCTIONS - Add this with your existing settings functions
+// ====================
+
+function clearAllAvatarCache() {
+  try {
+    let clearedCount = 0;
+    
+    // Clear all teleblog avatar cache entries
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('teleblog_avatar_')) {
+        localStorage.removeItem(key);
+        clearedCount++;
+      }
+    });
+    
+    showToast(`Cleared ${clearedCount} cached avatars`, 'success');
+    console.log('🗑️ Cleared avatar cache, count:', clearedCount);
+    
+  } catch (error) {
+    console.error('Avatar cache clearance failed:', error);
+    showToast('Failed to clear avatar cache', 'error');
+  }
+}
+
+// Make sure it's available globally
+window.clearAllAvatarCache = clearAllAvatarCache;
+
+
+
 function initializeSettings() {
   const savedSettings = localStorage.getItem('teleblog_settings');
   if (savedSettings) {
