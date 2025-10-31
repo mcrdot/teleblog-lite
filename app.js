@@ -672,7 +672,7 @@ function updateProfileInfo() {
     
     if (profileName) profileName.textContent = user.display_name || 'User';
     if (profileUsername) {
-      profileUsername.textContent = user.username ? `@${user.username}` : '@user';
+      profileUsername.textContent = user.username ? `${user.username}` : '@user';
     }
     
     // ========== INSTANT AVATAR LOADING SYSTEM ==========
