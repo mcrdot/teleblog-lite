@@ -31,6 +31,97 @@ window.loadPostsWithLoading = function() {
   loadPosts(); 
 };
 
+
+
+// ----------------------------------------
+
+// Add to app.js - Page Navigation System
+function navigateTo(page) {
+  console.log('🧭 Navigating to:', page);
+  showNavLoading();
+  
+  setTimeout(() => {
+    window.location.href = page;
+  }, 300);
+}
+
+function openSettings() {
+  navigateTo('settings.html');
+}
+
+// Update showAuthenticatedUI to redirect to home
+function showAuthenticatedUI() {
+  console.log('🎉 Authentication successful, redirecting to home...');
+  navigateTo('home.html');
+}
+
+// Update logout to redirect to index
+function logout() {
+  console.log('🚪 Logging out...');
+  
+  // Clear all app data
+  localStorage.removeItem("teleblog_token");
+  localStorage.removeItem("teleblog_user");
+  localStorage.removeItem("teleblog_settings");
+  
+  // Clear app state
+  window.teleBlogApp.currentUser = null;
+  window.teleBlogApp.jwtToken = null;
+  currentSettings = {};
+  
+  // Redirect to login page
+  window.location.href = 'index.html';
+}
+
+// Update switchPage to handle single-page apps
+function switchPage(id) {
+  // For single-page navigation within the same file
+  if (window.location.pathname.includes('index.html')) {
+    // Original single-page behavior
+    document.querySelectorAll(".page").forEach(p => {
+      p.classList.remove("active");
+    });
+    
+    const targetPage = document.getElementById(id);
+    if (targetPage) {
+      targetPage.classList.add("active");
+    }
+  }
+}
+
+// Add page-specific initialization
+document.addEventListener("DOMContentLoaded", function() {
+  const currentPage = window.location.pathname.split('/').pop();
+  
+  if (currentPage === 'home.html') {
+    initializeHomePage();
+  } else if (currentPage === 'profile.html') {
+    initializeProfilePage();
+  }
+  // Add other page initializers as needed
+});
+
+function initializeHomePage() {
+  console.log('🏠 Initializing home page');
+  // Load posts when home page loads
+  setTimeout(() => {
+    loadPosts();
+  }, 500);
+}
+
+function initializeProfilePage() {
+  console.log('👤 Initializing profile page');
+  // Update profile info when profile page loads
+  setTimeout(() => {
+    updateProfileInfo();
+  }, 500);
+}
+
+
+
+
+
+
 // Updated DOMContentLoaded Section:
 document.addEventListener("DOMContentLoaded", async () => {
   console.log('✅ DOM Content Loaded');

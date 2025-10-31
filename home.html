@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Feed - TeleBlog</title>
+  <link rel="stylesheet" href="styles/style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Sticky Header -->
+    <header class="sticky-header">
+      <div class="header-content">
+        <div class="app-logo-header">
+          <span class="logo-icon">📝</span>
+          <span class="logo-text">TeleBlog</span>
+        </div>
+        <button class="settings-btn" onclick="openSettings()">
+          <span class="settings-icon">⚙️</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Home Content -->
+    <section id="home" class="page active">
+      <div class="page-header">
+        <h1>Your Feed</h1>
+        <button class="icon-btn" id="refresh-btn" onclick="loadPosts()">
+          🔄
+        </button>
+      </div>
+      <div id="posts-container" class="posts-grid">
+        <div style="text-align: center; padding: 40px; color: var(--text-secondary-color);">
+          <div class="loader" style="margin: 0 auto 16px auto;"></div>
+          Loading your feed...
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button class="nav-item active">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Feed</span>
+      </button>
+      <button class="nav-item" onclick="navigateTo('explore.html')">
+        <span class="nav-icon">🔍</span>
+        <span class="nav-label">Explore</span>
+      </button>
+      <button class="nav-item" onclick="navigateTo('create.html')">
+        <span class="nav-icon">✏️</span>
+        <span class="nav-label">Create</span>
+      </button>
+      <button class="nav-item" onclick="navigateTo('profile.html')">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">Profile</span>
+      </button>
+    </nav>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

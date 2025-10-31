@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile - TeleBlog</title>
+  <link rel="stylesheet" href="styles/style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Sticky Header -->
+    <header class="sticky-header">
+      <div class="header-content">
+        <div class="app-logo-header">
+          <span class="logo-icon">📝</span>
+          <span class="logo-text">TeleBlog</span>
+        </div>
+        <button class="settings-btn" onclick="openSettings()">
+          <span class="settings-icon">⚙️</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Profile Content -->
+    <section id="profile" class="page active">
+      <div class="profile-header">
+        <div class="avatar-container">
+          <img id="profile-avatar" src="https://cdn-icons-png.flaticon.com/512/3177/3177440.png" alt="User" />
+        </div>
+        <div class="profile-info">
+          <h2 id="profile-name">User</h2>
+          <p id="profile-username">@username</p>
+        </div>
+      </div>
+        
+      <div class="profile-stats">
+        <div class="stat-item">
+          <span class="stat-number" id="posts-count">0</span>
+          <span class="stat-label">Posts</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" id="followers-count">0</span>
+          <span class="stat-label">Followers</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" id="following-count">0</span>
+          <span class="stat-label">Following</span>
+        </div>
+      </div>
+
+      <div class="profile-actions">
+        <button class="btn btn-outline" onclick="editProfile()">
+          Edit Profile
+        </button>
+        <button class="btn btn-secondary" onclick="logout()">
+          Logout
+        </button>
+      </div>
+    </section>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="navigateTo('home.html')">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Feed</span>
+      </button>
+      <button class="nav-item" onclick="navigateTo('explore.html')">
+        <span class="nav-icon">🔍</span>
+        <span class="nav-label">Explore</span>
+      </button>
+      <button class="nav-item" onclick="navigateTo('create.html')">
+        <span class="nav-icon">✏️</span>
+        <span class="nav-label">Create</span>
+      </button>
+      <button class="nav-item active">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">Profile</span>
+      </button>
+    </nav>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
