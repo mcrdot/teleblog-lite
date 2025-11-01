@@ -83,19 +83,23 @@ function showAuthenticatedUI() {
 }
 
 // Updated DOMContentLoaded with page initialization
-document.addEventListener("DOMContentLoaded", function() {
   const currentPage = window.location.pathname.split('/').pop();
   console.log('📍 Current page:', currentPage);
   
   // Initialize settings first
   initializeSettings();
   
-  // Initialize Supabase
-  try {
-    window.teleBlogApp.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    console.log('✅ Supabase initialized successfully');
-  } catch (error) {
-    console.error('❌ Supabase initialization failed:', error);
+  // Initialize Supabase ONLY if supabase CDN is available
+  if (window.supabase && window.supabase.createClient) {
+    try {
+      window.teleBlogApp.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      console.log('✅ Supabase initialized successfully');
+    } catch (error) {
+      console.error('❌ Supabase initialization failed:', error);
+      window.teleBlogApp.supabase = null;
+    }
+  } else {
+    console.log('⚠️ Supabase CDN not loaded on this page');
     window.teleBlogApp.supabase = null;
   }
 
@@ -1437,6 +1441,38 @@ function showCreatePost() {
 function editProfile() {
   console.log('👤 Edit profile');
   showToast('Profile editing coming soon!', 'info');
+}
+
+// YEH FUNCTIONS APP.JS KE END MEIN ADD KARO
+function initializeHomePage() {
+  console.log('🏠 Home page initialized');
+  // Posts automatically load via loadPosts() call
+}
+
+function initializeProfilePage() {
+  console.log('👤 Profile page initialized');
+  updateProfileInfo();
+}
+
+function initializeExplorePage() {
+  console.log('🔍 Explore page initialized');
+  // Explore page content
+}
+
+function initializeCreatePage() {
+  console.log('✏️ Create page initialized');
+  // Create page content
+}
+
+function initializeSettingsPage() {
+  console.log('⚙️ Settings page initialized');
+  // Settings are already handled
+}
+
+// Update openSettings function
+function openSettings() {
+  console.log('⚙️ Opening settings');
+  navigateTo('settings.html');
 }
 
 // Make functions globally available for onclick handlers

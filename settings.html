@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings - TeleBlog</title>
+  <link rel="stylesheet" href="styles/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@twa-dev/sdk@7.10.1/dist/telegram-web-apps.js"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- Navigation Loading Overlay -->
+    <div id="nav-loading" class="nav-loading">
+      <div class="nav-loader"></div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container"></div>
+
+    <!-- Settings Header -->
+    <div class="settings-header">
+      <button class="back-btn" onclick="navigateTo('home.html')">
+        <span class="back-icon">←</span>
+        Back
+      </button>
+      <h2>Settings</h2>
+      <div class="header-spacer"></div>
+    </div>
+
+    <div class="settings-content">
+      <!-- Theme Settings -->
+      <div class="settings-section">
+        <h3 class="section-title">Appearance</h3>
+        <div class="settings-option">
+          <div class="option-info">
+            <span class="option-title">Theme</span>
+            <span class="option-description">Choose your preferred theme</span>
+          </div>
+          <select id="theme-selector" class="theme-selector" onchange="changeTheme(this.value)">
+            <option value="telegram-native">Telegram Native Dark</option>
+            <option value="teleblog-dark">TeleBlog Dark</option>
+            <option value="system">System Default</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Wallet Settings -->
+      <div class="settings-section">
+        <h3 class="section-title">Wallet</h3>
+        <div class="settings-option">
+          <div class="option-info">
+            <span class="option-title">TON Wallet</span>
+            <span class="option-description" id="wallet-status">Not connected</span>
+          </div>
+          <button class="btn btn-outline btn-small" onclick="connectWallet()" id="wallet-btn">
+            Connect
+          </button>
+        </div>
+      </div>
+
+      <!-- Content Settings -->
+      <div class="settings-section">
+        <h3 class="section-title">Content</h3>
+        <div class="settings-option">
+          <div class="option-info">
+            <span class="option-title">Auto-load Images</span>
+            <span class="option-description">Load images automatically</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="auto-load-images" onchange="toggleSetting('autoLoadImages', this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
+        
+        <div class="settings-option">
+          <div class="option-info">
+            <span class="option-title">Text Size</span>
+            <span class="option-description">Adjust reading text size</span>
+          </div>
+          <select id="text-size" class="theme-selector" onchange="changeTextSize(this.value)">
+            <option value="small">Small</option>
+            <option value="medium" selected>Medium</option>
+            <option value="large">Large</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="settings-section">
+        <h3 class="section-title">Notifications</h3>
+        <div class="settings-option">
+          <div class="option-info">
+            <span class="option-title">Push Notifications</span>
+            <span class="option-description">Receive updates and mentions</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="push-notifications" onchange="toggleSetting('pushNotifications', this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
+        
+        <div class="settings-option">
+          <div class="option-info">
+            <span class="option-title">Email Digest</span>
+            <span class="option-description">Weekly reading recommendations</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="email-digest" onchange="toggleSetting('emailDigest', this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Data & Storage -->
+      <div class="settings-section">
+        <h3 class="section-title">Data & Storage</h3>
+        <div class="settings-option">
+          <div class="option-info">
+            <span class="option-title">Clear Cache</span>
+            <span class="option-description">Free up storage space</span>
+          </div>
+          <button class="btn btn-outline btn-small" onclick="clearCache()">
+            Clear
+          </button>
+        </div>
+        
+        <div class="settings-option">
+          <div class="option-info">
+            <span class="option-title">Clear Avatar Cache</span>
+            <span class="option-description">Clear cached profile pictures</span>
+          </div>
+          <button class="btn btn-outline btn-small" onclick="clearAllAvatarCache()">
+            Clear Cache
+          </button>
+        </div>
+        
+        <div class="settings-option">
+          <div class="option-info">
+            <span class="option-title">Export Data</span>
+            <span class="option-description">Download your posts and data</span>
+          </div>
+          <button class="btn btn-outline btn-small" onclick="exportData()">
+            Export
+          </button>
+        </div>
+      </div>
+
+      <!-- App Info -->
+      <div class="settings-section">
+        <h3 class="section-title">About</h3>
+        <div class="app-info">
+          <div class="info-item">
+            <span class="info-label">Version</span>
+            <span class="info-value">1.0.0</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Build Date</span>
+            <span class="info-value" id="build-date">Loading...</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Support</span>
+            <button class="btn-text" onclick="contactSupport()">Contact Us</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
