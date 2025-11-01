@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Explore - TeleBlog</title>
+  <link rel="stylesheet" href="styles/style.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="sticky-header">
+      <div class="header-content">
+        <div class="app-logo-header">
+          <span class="logo-icon">📝</span>
+          <span class="logo-text">TeleBlog</span>
+        </div>
+        <button class="settings-btn" onclick="openSettings()">⚙️</button>
+      </div>
+    </header>
+
+    <section id="explore" class="page active">
+      <div class="page-header">
+        <h1>Explore</h1>
+      </div>
+      <div class="explore-container">
+        <div class="section-placeholder">
+          <div class="placeholder-icon">🔍</div>
+          <h3>Discover Content</h3>
+          <p>Find trending articles and topics</p>
+        </div>
+      </div>
+    </section>
+
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="navigateTo('home.html')">🏠<span>Feed</span></button>
+      <button class="nav-item active">🔍<span>Explore</span></button>
+      <button class="nav-item" onclick="navigateTo('create.html')">✏️<span>Create</span></button>
+      <button class="nav-item" onclick="navigateTo('profile.html')">👤<span>Profile</span></button>
+    </nav>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

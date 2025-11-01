@@ -8,6 +8,9 @@ yarn-error.log*
 ignoreMe.txt
 tbl-dtls.txt
 oldsty.css
+/backup
+backup/
+/backup/
 
 # Environment variables
 .env

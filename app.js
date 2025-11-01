@@ -50,76 +50,162 @@ function openSettings() {
 }
 
 // Update showAuthenticatedUI to redirect to home
+// Update showAuthenticatedUI to handle page detection:
 function showAuthenticatedUI() {
-  console.log('🎉 Authentication successful, redirecting to home...');
-  navigateTo('home.html');
-}
-
-// Update logout to redirect to index
-function logout() {
-  console.log('🚪 Logging out...');
+  console.log('🎉 showAuthenticatedUI called');
   
-  // Clear all app data
-  localStorage.removeItem("teleblog_token");
-  localStorage.removeItem("teleblog_user");
-  localStorage.removeItem("teleblog_settings");
-  
-  // Clear app state
-  window.teleBlogApp.currentUser = null;
-  window.teleBlogApp.jwtToken = null;
-  currentSettings = {};
-  
-  // Redirect to login page
-  window.location.href = 'index.html';
-}
-
-// Update switchPage to handle single-page apps
-function switchPage(id) {
-  // For single-page navigation within the same file
-  if (window.location.pathname.includes('index.html')) {
-    // Original single-page behavior
-    document.querySelectorAll(".page").forEach(p => {
-      p.classList.remove("active");
-    });
-    
-    const targetPage = document.getElementById(id);
-    if (targetPage) {
-      targetPage.classList.add("active");
-    }
-  }
-}
-
-// Add page-specific initialization
-document.addEventListener("DOMContentLoaded", function() {
   const currentPage = window.location.pathname.split('/').pop();
   
-  if (currentPage === 'home.html') {
-    initializeHomePage();
-  } else if (currentPage === 'profile.html') {
-    initializeProfilePage();
+  if (currentPage === 'index.html' || currentPage === '' || currentPage === 'teleblog-lite/') {
+    // We're on login page, redirect to home
+    console.log('🔄 Redirecting to home page...');
+    navigateTo('home.html');
+    return;
   }
-  // Add other page initializers as needed
+  
+  // If we're already on an app page, just update UI
+  document.querySelectorAll('.guest-only').forEach(el => {
+    el.style.display = 'none';
+  });
+  
+  document.querySelectorAll('.auth-only').forEach(el => {
+    if (el.id !== 'settings') {
+      el.style.display = 'block';
+    }
+  });
+
+  const header = document.querySelector('.sticky-header');
+  const nav = document.querySelector('.bottom-nav');
+  if (header) header.style.display = 'block';
+  if (nav) nav.style.display = 'flex';
+
+  console.log('✅ UI elements visibility updated');
+}
+
+// Updated DOMContentLoaded with page initialization
+document.addEventListener("DOMContentLoaded", function() {
+  const currentPage = window.location.pathname.split('/').pop();
+  console.log('📍 Current page:', currentPage);
+  
+  // Initialize settings first
+  initializeSettings();
+  
+  // Initialize Supabase
+  try {
+    window.teleBlogApp.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log('✅ Supabase initialized successfully');
+  } catch (error) {
+    console.error('❌ Supabase initialization failed:', error);
+    window.teleBlogApp.supabase = null;
+  }
+
+  // Check authentication
+  const validToken = localStorage.getItem("teleblog_token");
+  const validUser = localStorage.getItem("teleblog_user");
+
+  if (validToken && validUser) {
+    console.log('✅ Found valid existing session');
+    window.teleBlogApp.jwtToken = validToken;
+    window.teleBlogApp.currentUser = JSON.parse(validUser);
+    
+    if (currentPage === 'index.html' || currentPage === '' || currentPage === 'teleblog-lite/') {
+      // Redirect authenticated users from login page to home
+      showAuthenticatedUI();
+    } else {
+      // Initialize the specific page AND show authenticated UI
+      showAuthenticatedUI(); // This ensures header/nav are visible
+      initializePage(currentPage);
+    }
+  } else {
+    console.log('❌ No valid session found');
+    if (currentPage !== 'index.html' && currentPage !== '' && currentPage !== 'teleblog-lite/') {
+      // Redirect unauthenticated users to login
+      console.log('🔒 Redirecting to login...');
+      window.location.href = 'index.html';
+    } else {
+      // Show login page
+      initializeTelegramAuth();
+    }
+  }
 });
 
-function initializeHomePage() {
-  console.log('🏠 Initializing home page');
-  // Load posts when home page loads
-  setTimeout(() => {
-    loadPosts();
-  }, 500);
+// Enhanced showAuthenticatedUI for multi-page support
+function showAuthenticatedUI() {
+  console.log('🎉 showAuthenticatedUI called');
+  
+  const currentPage = window.location.pathname.split('/').pop();
+  
+  // If we're on login page, redirect to home
+  if (currentPage === 'index.html' || currentPage === '' || currentPage === 'teleblog-lite/') {
+    console.log('🔄 Redirecting to home page...');
+    navigateTo('home.html');
+    return;
+  }
+  
+  // For app pages, ensure auth-only elements are visible
+  document.querySelectorAll('.auth-only').forEach(el => {
+    el.style.display = 'block';
+  });
+  
+  document.querySelectorAll('.guest-only').forEach(el => {
+    el.style.display = 'none';
+  });
+
+  console.log('✅ Auth UI updated for page:', currentPage);
 }
 
-function initializeProfilePage() {
-  console.log('👤 Initializing profile page');
-  // Update profile info when profile page loads
+// Enhanced initializePage function
+function initializePage(pageName) {
+  console.log('🚀 Initializing page:', pageName);
+  
+  // Small delay to ensure DOM is fully ready
   setTimeout(() => {
-    updateProfileInfo();
-  }, 500);
+    switch(pageName) {
+      case 'home.html':
+        initializeHomePage();
+        break;
+      case 'profile.html':
+        initializeProfilePage();
+        break;
+      case 'explore.html':
+        initializeExplorePage();
+        break;
+      case 'create.html':
+        initializeCreatePage();
+        break;
+      case 'settings.html':
+        initializeSettingsPage();
+        break;
+      default:
+        console.log('⚠️ Unknown page, trying to detect...');
+        // Fallback: try to detect page by ID
+        detectAndInitializePage();
+    }
+  }, 100);
 }
 
+// Fallback page detection
+function detectAndInitializePage() {
+  const pages = ['home', 'profile', 'explore', 'create', 'settings'];
+  for (let page of pages) {
+    const element = document.getElementById(page);
+    if (element && element.classList.contains('active')) {
+      console.log(`🎯 Detected active page: ${page}`);
+      initializePage(`${page}.html`);
+      return;
+    }
+  }
+  console.log('❌ Could not detect active page');
+}
+function initializeCreatePage() {
+  console.log('✏️ Initializing create page');
+  // Add create page initialization here
+}
 
-
-
+function initializeSettingsPage() {
+  console.log('⚙️ Initializing settings page');
+  // Settings are already initialized by initializeSettings()
+}
 
 
 // Updated DOMContentLoaded Section:
@@ -938,12 +1024,14 @@ function showAuthenticatedUI() {
   }, 1000);
 }
 
+// Replace the loadPosts function in app.js:
 async function loadPosts() {
+  // Check if we're on the home page and posts container exists
   const container = document.getElementById("posts-container");
   
   if (!container) {
-    console.error('❌ Posts container not found');
-    return;
+    console.log('⚠️ Not on home page or posts container not found');
+    return; // Silently return if not on home page
   }
 
   console.log('📝 Loading posts...');
@@ -967,7 +1055,6 @@ async function loadPosts() {
     if (!response.ok) {
       if (response.status === 401) {
         console.log('⚠️ API returned 401 - Using demo posts instead');
-        // Use demo posts when API returns 401
         showDemoPosts();
         return;
       }
@@ -984,10 +1071,10 @@ async function loadPosts() {
     }
   } catch (error) {
     console.error("❌ Failed to load posts:", error);
-    // Fallback to demo posts on any error
     showDemoPosts();
   }
 }
+
 
 // Add these new helper functions:
 

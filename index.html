@@ -3,57 +3,69 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TeleBlog - Telegram Blogging</title>
+  <title>Feed - TeleBlog</title>
   <link rel="stylesheet" href="styles/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@twa-dev/sdk@7.10.1/dist/telegram-web-apps.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <div id="app">
-    <!-- Navigation Loading Overlay -->
+    <!-- Navigation Loading -->
     <div id="nav-loading" class="nav-loading">
       <div class="nav-loader"></div>
     </div>
 
-    <!-- Toast Notifications -->
+    <!-- Toast Container -->
     <div id="toast-container"></div>
 
-    <!-- Auth Section Only -->
-    <section id="auth" class="page active">
-      <div class="auth-container">
-        <div class="app-logo">
-          <div class="logo-icon">📝</div>
-          <h1>TeleBlog</h1>
+    <!-- Sticky Header -->
+    <header class="sticky-header auth-only">
+      <div class="header-content">
+        <div class="app-logo-header">
+          <span class="logo-icon">📝</span>
+          <span class="logo-text">TeleBlog</span>
         </div>
-        <p class="app-tagline">Your blogging companion inside Telegram</p>
-        
-        <div class="auth-actions">
-          <button id="telegram-login-btn" class="btn btn-primary btn-telegram" style="display:none;">
-            <span class="btn-icon">🔐</span>
-            Login with Telegram
-          </button>
-          <button id="dev-login-btn" class="btn btn-secondary">
-            <span class="btn-icon">🚀</span>
-            Quick Test Login
-          </button>
-        </div>
+        <button class="settings-btn" onclick="openSettings()">
+          <span class="settings-icon">⚙️</span>
+        </button>
+      </div>
+    </header>
 
-        <div class="auth-features">
-          <div class="feature-item">
-            <span class="feature-icon">✨</span>
-            <span>Seamless Telegram integration</span>
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">📱</span>
-            <span>Mobile-optimized reading</span>
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">⚡</span>
-            <span>Lightning fast publishing</span>
-          </div>
+    <!-- Home Content -->
+    <section id="home" class="page auth-only active">
+      <div class="page-header">
+        <h1>Your Feed</h1>
+        <button class="icon-btn" id="refresh-btn" onclick="loadPosts()">
+          🔄
+        </button>
+      </div>
+      <div id="posts-container" class="posts-grid">
+        <div style="text-align: center; padding: 40px; color: var(--text-secondary-color);">
+          <div class="loader" style="margin: 0 auto 16px auto;"></div>
+          Loading your feed...
         </div>
       </div>
     </section>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav auth-only">
+      <button id="nav-home" class="nav-item active">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Feed</span>
+      </button>
+      <button id="nav-explore" class="nav-item" onclick="navigateTo('explore.html')">
+        <span class="nav-icon">🔍</span>
+        <span class="nav-label">Explore</span>
+      </button>
+      <button id="nav-create" class="nav-item" onclick="navigateTo('create.html')">
+        <span class="nav-icon">✏️</span>
+        <span class="nav-label">Create</span>
+      </button>
+      <button id="nav-profile" class="nav-item" onclick="navigateTo('profile.html')">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">Profile</span>
+      </button>
+    </nav>
   </div>
 
   <script src="app.js"></script>
