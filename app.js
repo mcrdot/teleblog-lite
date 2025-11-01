@@ -1160,7 +1160,7 @@ function initializeSettingsPage() {
   
   // Set current values in form
   if (document.getElementById('theme-selector')) {
-    document.getElementById('theme-selector').value = currentSettings.theme;
+    document.getElementById('changeTheme').value = currentSettings.theme;
   }
   
   if (document.getElementById('notifications-toggle')) {
