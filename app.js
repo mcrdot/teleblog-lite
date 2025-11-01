@@ -1159,8 +1159,8 @@ function initializeSettingsPage() {
   console.log('⚙️ Initializing settings page UI');
   
   // Set current values in form
-  if (document.getElementById('theme-selector')) {
-    document.getElementById('changeTheme').value = currentSettings.theme;
+  if (document.getElementById('changeTheme')) {
+    document.getElementById('theme-selector').value = currentSettings.theme;
   }
   
   if (document.getElementById('notifications-toggle')) {
