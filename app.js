@@ -31,11 +31,12 @@ window.loadPostsWithLoading = function() {
   loadPosts(); 
 };
 
-
+// ----- supa6ase false -----
+let supabaseInitialized = false;
 
 // ----------------------------------------
 
-// Add to app.js - Page Navigation System
+// Page Navigation System
 function navigateTo(page) {
   console.log('🧭 Navigating to:', page);
   showNavLoading();
@@ -45,12 +46,13 @@ function navigateTo(page) {
   }, 300);
 }
 
+// UNIFIED openSettings FUNCTION - Single implementation
 function openSettings() {
+  console.log('⚙️ Opening settings');
   navigateTo('settings.html');
 }
 
 // Update showAuthenticatedUI to redirect to home
-// Update showAuthenticatedUI to handle page detection:
 function showAuthenticatedUI() {
   console.log('🎉 showAuthenticatedUI called');
   
@@ -83,6 +85,7 @@ function showAuthenticatedUI() {
 }
 
 // Updated DOMContentLoaded with page initialization
+document.addEventListener("DOMContentLoaded", async () => {
   const currentPage = window.location.pathname.split('/').pop();
   console.log('📍 Current page:', currentPage);
   
@@ -90,17 +93,15 @@ function showAuthenticatedUI() {
   initializeSettings();
   
   // Initialize Supabase ONLY if supabase CDN is available
-  if (window.supabase && window.supabase.createClient) {
+  if (!supabaseInitialized && window.supabase && window.supabase.createClient) {
     try {
       window.teleBlogApp.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      supabaseInitialized = true;
       console.log('✅ Supabase initialized successfully');
     } catch (error) {
       console.error('❌ Supabase initialization failed:', error);
       window.teleBlogApp.supabase = null;
     }
-  } else {
-    console.log('⚠️ Supabase CDN not loaded on this page');
-    window.teleBlogApp.supabase = null;
   }
 
   // Check authentication
@@ -132,31 +133,6 @@ function showAuthenticatedUI() {
     }
   }
 });
-
-// Enhanced showAuthenticatedUI for multi-page support
-function showAuthenticatedUI() {
-  console.log('🎉 showAuthenticatedUI called');
-  
-  const currentPage = window.location.pathname.split('/').pop();
-  
-  // If we're on login page, redirect to home
-  if (currentPage === 'index.html' || currentPage === '' || currentPage === 'teleblog-lite/') {
-    console.log('🔄 Redirecting to home page...');
-    navigateTo('home.html');
-    return;
-  }
-  
-  // For app pages, ensure auth-only elements are visible
-  document.querySelectorAll('.auth-only').forEach(el => {
-    el.style.display = 'block';
-  });
-  
-  document.querySelectorAll('.guest-only').forEach(el => {
-    el.style.display = 'none';
-  });
-
-  console.log('✅ Auth UI updated for page:', currentPage);
-}
 
 // Enhanced initializePage function
 function initializePage(pageName) {
@@ -201,6 +177,7 @@ function detectAndInitializePage() {
   }
   console.log('❌ Could not detect active page');
 }
+
 function initializeCreatePage() {
   console.log('✏️ Initializing create page');
   // Add create page initialization here
@@ -211,13 +188,12 @@ function initializeSettingsPage() {
   // Settings are already initialized by initializeSettings()
 }
 
-
 // Updated DOMContentLoaded Section:
 document.addEventListener("DOMContentLoaded", async () => {
   console.log('✅ DOM Content Loaded');
   
-// Load saved avatar when app starts
-loadSavedAvatar();
+  // Load saved avatar when app starts
+  loadSavedAvatar();
 
   // ===== TEMPORARY FIX: Check token validity =====
   const savedToken = localStorage.getItem("teleblog_token");
@@ -235,16 +211,6 @@ loadSavedAvatar();
   // Initialize settings first
   initializeSettings();
   console.log('✅ Settings initialized');
-
-  // Initialize Supabase WITH API KEY - FIXED
-  try {
-    window.teleBlogApp.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    console.log('✅ Supabase initialized successfully');
-  } catch (error) {
-    console.error('❌ Supabase initialization failed:', error);
-    // Continue without Supabase - it's only used for some features
-    window.teleBlogApp.supabase = null;
-  }
 
   // Check for existing session first (AFTER our token check above)
   const validToken = localStorage.getItem("teleblog_token"); // Check again after potential clear
@@ -448,7 +414,6 @@ async function authenticateWithTelegram(initData) {
   }
 }
 
-
 function showManualLogin() {
   console.log('👤 Showing manual login options');
   
@@ -515,7 +480,6 @@ async function uploadAvatarToSupabase(base64Image) {
     throw error;
   }
 }
-
 
 // PROFILE EDIT
 // Profile Edit Functions
@@ -682,15 +646,6 @@ async function convertToBase64(file) {
   });
 }
 
-function convertToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = error => reject(error);
-  });
-}
-
 async function saveProfile() {
   const displayName = document.getElementById('edit-display-name')?.value.trim();
   const username = document.getElementById('edit-username')?.value.trim();
@@ -778,9 +733,6 @@ function loadSavedAvatar() {
   }
 }
 
-
-
-// ----------------------------------
 // ==================== 
 // PROFILE PHOTO CACHING SYSTEM
 // ====================
@@ -835,15 +787,9 @@ function clearAvatarCache(userId) {
   console.log('🗑️ Cleared avatar cache for user:', userId);
 }
 
-
-
-
-// ++++++++++++++++++++++++
-// ---------------------------------
+// ----------------------------------
 // Enhanced UI functions
 // UPDATED VERSION:
-// ----------------------------------
-// ----------------------------------
 function updateProfileInfo() {
   if (window.teleBlogApp.currentUser) {
     const user = window.teleBlogApp.currentUser;
@@ -921,7 +867,6 @@ function loadFreshAvatar(user, profileAvatar) {
   };
 }
 
-
 function logout() {
   console.log('🚪 Logging out...');
   
@@ -973,59 +918,17 @@ function switchPage(id) {
     navButton.classList.add("active");
   }
   
-  // Load data for the active page - UPDATE THIS PART:
+  // Load data for the active page
   switch(id) {
     case 'home':
       loadPosts();
       break;
     case 'profile':
-      updateProfileInfo(); // MOVE PROFILE UPDATE HERE!
+      updateProfileInfo();
       break;
   }
   
   console.log('✅ Page switched to:', id);
-}
-
-
-function showAuthenticatedUI() {
-  console.log('🎉 showAuthenticatedUI called');
-  
-  // Hide guest elements
-  document.querySelectorAll('.guest-only').forEach(el => {
-    el.style.display = 'none';
-  });
-  
-  // Show auth elements EXCEPT settings
-  document.querySelectorAll('.auth-only').forEach(el => {
-    if (el.id !== 'settings') {
-      el.style.display = 'block';
-    }
-  });
-  
-  // Specifically ensure header and nav are visible
-  const header = document.querySelector('.sticky-header');
-  const nav = document.querySelector('.bottom-nav');
-  if (header) header.style.display = 'block';
-  if (nav) nav.style.display = 'flex';
-
-  console.log('✅ UI elements visibility updated');
-
-  // Switch to home page
-  console.log('🔄 Switching to home page');
-  switchPage('home');
-
-  // ADD THIS CODE RIGHT HERE:
-  // Check if profile section is active after a delay
-  setTimeout(() => {
-    const profileSection = document.getElementById('profile');
-    if (profileSection && profileSection.classList.contains('active')) {
-      console.log('🎯 Profile section is active, updating info...');
-      updateProfileInfo();
-    } else {
-      console.log('⚠️ Profile section is NOT active - current active page:', 
-        document.querySelector('.page.active')?.id);
-    }
-  }, 1000);
 }
 
 // Replace the loadPosts function in app.js:
@@ -1079,9 +982,7 @@ async function loadPosts() {
   }
 }
 
-
 // Add these new helper functions:
-
 function showDemoPosts() {
   const container = document.getElementById("posts-container");
   if (!container) return;
@@ -1150,7 +1051,6 @@ function showEmptyState() {
   `;
 }
 
-
 function renderPosts(posts) {
   const container = document.getElementById("posts-container");
   if (!container) return;
@@ -1178,40 +1078,50 @@ function renderPosts(posts) {
   `).join('');
 }
 
+// Add these utility functions:
 function escapeHtml(text) {
-  if (!text) return '';
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
 }
 
 function formatDate(dateString) {
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  } catch (e) {
-    return 'Unknown date';
-  }
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+  
+  return date.toLocaleDateString();
 }
 
+function showCreatePost() {
+  console.log('📝 Opening post creator');
+  switchPage('create');
+}
+
+// Toast notification system
 function showToast(message, type = "info") {
-  const container = document.getElementById("toast-container");
-  if (!container) return;
+  console.log(`🍞 Toast [${type}]: ${message}`);
   
-  console.log('🍞 Showing toast:', message);
+  // Remove existing toasts
+  const existingToasts = document.querySelectorAll('.toast');
+  existingToasts.forEach(toast => toast.remove());
   
-  const toast = document.createElement("div");
+  const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
   toast.innerHTML = `
-    <span>${message}</span>
-    <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+    <div class="toast-message">${message}</div>
+    <button class="toast-close" onclick="this.parentElement.remove()">×</button>
   `;
   
-  container.appendChild(toast);
+  document.body.appendChild(toast);
+  
+  // Auto remove after 5 seconds
   setTimeout(() => {
     if (toast.parentElement) {
       toast.remove();
@@ -1219,278 +1129,177 @@ function showToast(message, type = "info") {
   }, 5000);
 }
 
-// ====================
-// SETTINGS FUNCTIONS - Add this with your existing settings functions
-// ====================
-
-function clearAllAvatarCache() {
-  try {
-    let clearedCount = 0;
-    
-    // Clear all teleblog avatar cache entries
-    Object.keys(localStorage).forEach(key => {
-      if (key.startsWith('teleblog_avatar_')) {
-        localStorage.removeItem(key);
-        clearedCount++;
-      }
-    });
-    
-    showToast(`Cleared ${clearedCount} cached avatars`, 'success');
-    console.log('🗑️ Cleared avatar cache, count:', clearedCount);
-    
-  } catch (error) {
-    console.error('Avatar cache clearance failed:', error);
-    showToast('Failed to clear avatar cache', 'error');
-  }
-}
-
-// Make sure it's available globally
-window.clearAllAvatarCache = clearAllAvatarCache;
-
-
-
+// Settings functions
 function initializeSettings() {
+  console.log('⚙️ Initializing settings system');
+  
+  // Load saved settings or use defaults
   const savedSettings = localStorage.getItem('teleblog_settings');
+  
   if (savedSettings) {
     currentSettings = JSON.parse(savedSettings);
-    applySettings();
+    console.log('📖 Loaded saved settings:', currentSettings);
   } else {
+    // Default settings
     currentSettings = {
-      theme: 'telegram-native',
-      textSize: 'medium',
-      autoLoadImages: true,
-      pushNotifications: true,
-      emailDigest: false,
-      walletConnected: false
+      theme: 'auto',
+      notifications: true,
+      language: 'english',
+      autoSave: true,
+      fontSize: 'medium'
     };
-    saveSettings();
+    console.log('📝 Using default settings');
   }
   
-  const buildDateElement = document.getElementById('build-date');
-  if (buildDateElement) {
-    buildDateElement.textContent = new Date().toLocaleDateString();
-  }
-  
-  console.log('✅ Settings initialized');
-}
-
-function saveSettings() {
-  localStorage.setItem('teleblog_settings', JSON.stringify(currentSettings));
+  // Apply settings immediately
   applySettings();
 }
 
-function applySettings() {
-  document.documentElement.setAttribute('data-theme', currentSettings.theme);
-  document.documentElement.setAttribute('data-text-size', currentSettings.textSize);
+function initializeSettingsPage() {
+  console.log('⚙️ Initializing settings page UI');
   
-  const themeSelector = document.getElementById('theme-selector');
-  const textSizeSelector = document.getElementById('text-size');
-  const autoLoadImages = document.getElementById('auto-load-images');
-  const pushNotifications = document.getElementById('push-notifications');
-  const emailDigest = document.getElementById('email-digest');
+  // Set current values in form
+  if (document.getElementById('theme-select')) {
+    document.getElementById('theme-select').value = currentSettings.theme;
+  }
   
-  if (themeSelector) themeSelector.value = currentSettings.theme;
-  if (textSizeSelector) textSizeSelector.value = currentSettings.textSize;
-  if (autoLoadImages) autoLoadImages.checked = currentSettings.autoLoadImages;
-  if (pushNotifications) pushNotifications.checked = currentSettings.pushNotifications;
-  if (emailDigest) emailDigest.checked = currentSettings.emailDigest;
+  if (document.getElementById('notifications-toggle')) {
+    document.getElementById('notifications-toggle').checked = currentSettings.notifications;
+  }
   
-  updateWalletStatus();
-}
-
-// Settings modal functions
-function openSettings() {
-  console.log('⚙️ Opening settings');
+  if (document.getElementById('language-select')) {
+    document.getElementById('language-select').value = currentSettings.language;
+  }
   
-  // Hide all other pages
-  document.querySelectorAll(".page").forEach(p => {
-    p.classList.remove("active");
+  if (document.getElementById('auto-save-toggle')) {
+    document.getElementById('auto-save-toggle').checked = currentSettings.autoSave;
+  }
+  
+  if (document.getElementById('font-size-select')) {
+    document.getElementById('font-size-select').value = currentSettings.fontSize;
+  }
+  
+  // Add event listeners
+  document.querySelectorAll('#settings-form input, #settings-form select').forEach(element => {
+    element.addEventListener('change', saveSettings);
   });
   
-  // Show settings page
-  document.getElementById('settings').classList.add('active');
-  
-  // Update navigation - no active nav for settings
-  document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
+  console.log('✅ Settings page initialized');
 }
 
-function closeSettings() {
-  console.log('⚙️ Closing settings');
+function saveSettings() {
+  console.log('💾 Saving settings...');
   
-  // HIDE settings page using both methods
-  const settingsPage = document.getElementById('settings');
-  if (settingsPage) {
-    settingsPage.style.display = 'none'; // Force hide
-    settingsPage.classList.remove('active'); // Remove active state
+  // Get values from form
+  currentSettings = {
+    theme: document.getElementById('theme-select')?.value || 'auto',
+    notifications: document.getElementById('notifications-toggle')?.checked || true,
+    language: document.getElementById('language-select')?.value || 'english',
+    autoSave: document.getElementById('auto-save-toggle')?.checked || true,
+    fontSize: document.getElementById('font-size-select')?.value || 'medium'
+  };
+  
+  // Save to localStorage
+  localStorage.setItem('teleblog_settings', JSON.stringify(currentSettings));
+  
+  // Apply settings
+  applySettings();
+  
+  showToast('Settings saved successfully!', 'success');
+  console.log('✅ Settings saved:', currentSettings);
+}
+
+function applySettings() {
+  console.log('🎨 Applying settings...');
+  
+  // Apply theme
+  if (currentSettings.theme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  } else if (currentSettings.theme === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+  } else {
+    // Auto theme - follow system preference
+    document.documentElement.removeAttribute('data-theme');
   }
   
-  // SHOW home page using switchPage (which handles everything)
-  switchPage('home');
+  // Apply font size
+  document.documentElement.style.fontSize = getFontSizeValue(currentSettings.fontSize);
   
-  console.log('✅ Settings closed completely');
+  console.log('✅ Settings applied');
 }
 
-
-// Theme functions
-function changeTheme(theme) {
-  console.log('🎨 Changing theme to:', theme);
-  currentSettings.theme = theme;
-  saveSettings();
-  showToast(`Theme changed to ${theme}`, 'success');
+function getFontSizeValue(size) {
+  const sizes = {
+    'small': '14px',
+    'medium': '16px',
+    'large': '18px',
+    'xlarge': '20px'
+  };
+  return sizes[size] || '16px';
 }
 
-function changeTextSize(size) {
-  console.log('📝 Changing text size to:', size);
-  currentSettings.textSize = size;
-  saveSettings();
-  showToast(`Text size set to ${size}`, 'success');
-}
-
-function toggleSetting(key, value) {
-  console.log('⚙️ Toggling setting:', key, value);
-  currentSettings[key] = value;
-  saveSettings();
-  showToast(`Setting updated`, 'success');
-}
-
-// Wallet functions
-function connectWallet() {
-  console.log('💰 Connecting wallet...');
-  showNavLoading();
-  setTimeout(() => {
-    currentSettings.walletConnected = true;
-    saveSettings();
-    hideNavLoading();
-    showToast('TON Wallet connected successfully!', 'success');
-  }, 2000);
-}
-
-function updateWalletStatus() {
-  const walletStatus = document.getElementById('wallet-status');
-  const walletBtn = document.getElementById('wallet-btn');
+// Initialize Telegram auth
+function initializeTelegramAuth() {
+  console.log('🤖 Initializing Telegram authentication');
   
-  if (walletStatus && walletBtn) {
-    if (currentSettings.walletConnected) {
-      walletStatus.textContent = 'Connected';
-      walletBtn.textContent = 'Disconnect';
-      walletBtn.onclick = disconnectWallet;
-    } else {
-      walletStatus.textContent = 'Not connected';
-      walletBtn.textContent = 'Connect';
-      walletBtn.onclick = connectWallet;
-    }
+  // Check if we're in Telegram environment
+  if (window.Telegram?.WebApp) {
+    const tg = window.Telegram.WebApp;
+    window.teleBlogApp.tg = tg;
+    
+    tg.ready();
+    tg.expand();
+    
+    console.log('✅ Telegram WebApp initialized:', {
+      platform: tg.platform,
+      version: tg.version
+    });
+    
+    // Try to authenticate with Telegram
+    attemptTelegramAuth();
+  } else {
+    console.log('🌐 Not in Telegram environment - showing manual login');
+    showManualLogin();
   }
 }
 
-function disconnectWallet() {
-  console.log('💰 Disconnecting wallet...');
-  showNavLoading();
-  setTimeout(() => {
-    currentSettings.walletConnected = false;
-    saveSettings();
-    hideNavLoading();
-    showToast('TON Wallet disconnected', 'info');
-  }, 1500);
-}
-
-// Data functions
-function clearCache() {
-  console.log('🗑️ Clearing cache...');
-  showNavLoading();
-  setTimeout(() => {
-    localStorage.removeItem('teleblog_posts_cache');
-    hideNavLoading();
-    showToast('Cache cleared successfully', 'success');
-  }, 1500);
-}
-
-function exportData() {
-  console.log('📤 Exporting data...');
-  showNavLoading();
-  setTimeout(() => {
-    const exportData = {
-      user: window.teleBlogApp.currentUser,
-      settings: currentSettings,
-      exportDate: new Date().toISOString()
-    };
-    
-    const dataStr = JSON.stringify(exportData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(dataBlob);
-    link.download = `teleblog-export-${new Date().getTime()}.json`;
-    link.click();
-    
-    hideNavLoading();
-    showToast('Data exported successfully', 'success');
-  }, 2000);
-}
-
-function contactSupport() {
-  console.log('📞 Contacting support');
-  showToast('Support: contact@teleblog.app', 'info');
-}
-
-// Placeholder functions
-function showCreatePost() {
-  console.log('✏️ Show create post');
-  showToast('Create post feature coming soon!', 'info');
-}
-
-function editProfile() {
-  console.log('👤 Edit profile');
-  showToast('Profile editing coming soon!', 'info');
-}
-
-// YEH FUNCTIONS APP.JS KE END MEIN ADD KARO
+// Initialize page-specific functions
 function initializeHomePage() {
-  console.log('🏠 Home page initialized');
-  // Posts automatically load via loadPosts() call
+  console.log('🏠 Initializing home page');
+  loadPosts();
 }
 
 function initializeProfilePage() {
-  console.log('👤 Profile page initialized');
+  console.log('👤 Initializing profile page');
   updateProfileInfo();
 }
 
 function initializeExplorePage() {
-  console.log('🔍 Explore page initialized');
-  // Explore page content
+  console.log('🔍 Initializing explore page');
+  // Add explore page initialization here
 }
 
-function initializeCreatePage() {
-  console.log('✏️ Create page initialized');
-  // Create page content
+// Add this new function to handle avatar loading
+function loadUserAvatar(userId, avatarUrl, targetElement) {
+  if (!targetElement) return;
+  
+  // Try cached version first
+  const cachedAvatar = getCachedAvatar(userId);
+  if (cachedAvatar) {
+    targetElement.src = cachedAvatar;
+    return;
+  }
+  
+  // Load fresh and cache
+  if (avatarUrl) {
+    const telegramPath = avatarUrl.replace('https://', '');
+    const proxyUrl = `${API_BASE}/proxy/avatar/${encodeURIComponent(telegramPath)}`;
+    
+    targetElement.src = proxyUrl;
+    targetElement.onload = () => {
+      cacheUserAvatar(userId, avatarUrl);
+    };
+  }
 }
 
-function initializeSettingsPage() {
-  console.log('⚙️ Settings page initialized');
-  // Settings are already handled
-}
-
-// Update openSettings function
-function openSettings() {
-  console.log('⚙️ Opening settings');
-  navigateTo('settings.html');
-}
-
-// Make functions globally available for onclick handlers
-window.useDevelopmentLogin = useDevelopmentLogin;
-window.openSettings = openSettings;
-window.closeSettings = closeSettings;
-window.switchPageWithLoading = switchPageWithLoading;
-window.loadPostsWithLoading = loadPostsWithLoading;
-window.showCreatePost = showCreatePost;
-window.editProfile = editProfile;
-window.logout = logout;
-window.connectWallet = connectWallet;
-window.disconnectWallet = disconnectWallet;
-window.clearCache = clearCache;
-window.exportData = exportData;
-window.contactSupport = contactSupport;
-window.changeTheme = changeTheme;
-window.changeTextSize = changeTextSize;
-window.toggleSetting = toggleSetting;
-
-console.log('✅ TeleBlog app.js loaded successfully');
+console.log('✅ TeleBlog App Script Loaded Successfully!');
