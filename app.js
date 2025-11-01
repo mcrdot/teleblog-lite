@@ -1159,8 +1159,8 @@ function initializeSettingsPage() {
   console.log('⚙️ Initializing settings page UI');
   
   // Set current values in form
-  if (document.getElementById('theme-select')) {
-    document.getElementById('theme-select').value = currentSettings.theme;
+  if (document.getElementById('theme-selector')) {
+    document.getElementById('theme-selector').value = currentSettings.theme;
   }
   
   if (document.getElementById('notifications-toggle')) {
@@ -1192,7 +1192,7 @@ function saveSettings() {
   
   // Get values from form
   currentSettings = {
-    theme: document.getElementById('theme-select')?.value || 'auto',
+    theme: document.getElementById('theme-selector')?.value || 'auto',
     notifications: document.getElementById('notifications-toggle')?.checked || true,
     language: document.getElementById('language-select')?.value || 'english',
     autoSave: document.getElementById('auto-save-toggle')?.checked || true,
